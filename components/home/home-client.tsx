@@ -1,5 +1,6 @@
 "use client";
 
+import type { MessageBinaryFormat } from "@v0-sdk/react";
 import { StreamingMessage } from "@v0-sdk/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -26,6 +27,7 @@ import { ChatMessages } from "@/components/chat/chat-messages";
 import { PreviewPanel } from "@/components/chat/preview-panel";
 import { AppHeader } from "@/components/shared/app-header";
 import { ResizableLayout } from "@/components/shared/resizable-layout";
+import type { ChatData } from "@/types/chat";
 
 // Component that uses useSearchParams - needs to be wrapped in Suspense
 function SearchParamsHandler({ onReset }: { onReset: () => void }) {
@@ -56,7 +58,7 @@ export function HomeClient() {
   const [chatHistory, setChatHistory] = useState<
     Array<{
       type: "user" | "assistant";
-      content: string | any;
+      content: string | MessageBinaryFormat;
       isStreaming?: boolean;
       stream?: ReadableStream<Uint8Array> | null;
     }>
@@ -246,7 +248,7 @@ export function HomeClient() {
     }
   };
 
-  const handleChatData = async (chatData: any) => {
+  const handleChatData = async (chatData: ChatData) => {
     if (chatData.id) {
       // Only set currentChat if it's not already set or if this is the main chat object
       if (!currentChatId || chatData.object === "chat") {
@@ -277,7 +279,9 @@ export function HomeClient() {
     }
   };
 
-  const handleStreamingComplete = async (finalContent: any) => {
+  const handleStreamingComplete = async (
+    finalContent: string | MessageBinaryFormat,
+  ) => {
     setIsLoading(false);
 
     // Update chat history with final content
@@ -463,7 +467,7 @@ export function HomeClient() {
             {chatHistory.map((msg, index) =>
               msg.isStreaming && msg.stream ? (
                 <StreamingMessage
-                  key={index}
+                  key={`streaming-${msg.type}-${index}`}
                   stream={msg.stream}
                   messageId={`msg-${index}`}
                   onComplete={handleStreamingComplete}

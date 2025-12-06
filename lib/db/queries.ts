@@ -11,6 +11,10 @@ import {
 } from "./schema";
 import { generateHashedPassword } from "./utils";
 
+/**
+ * Gets the database instance, throwing if not initialized.
+ * @throws Error if POSTGRES_URL is not set
+ */
 function getDb() {
   if (!db) {
     throw new Error("Database not initialized. Ensure POSTGRES_URL is set.");
@@ -19,6 +23,7 @@ function getDb() {
   return db;
 }
 
+/** Retrieves a user by email address. */
 export async function getUser(email: string): Promise<User[]> {
   try {
     return await getDb().select().from(users).where(eq(users.email, email));
@@ -28,6 +33,7 @@ export async function getUser(email: string): Promise<User[]> {
   }
 }
 
+/** Creates a new user with email and password. */
 export async function createUser(
   email: string,
   password: string,
@@ -47,6 +53,7 @@ export async function createUser(
   }
 }
 
+/** Creates a guest user with auto-generated credentials. */
 export async function createGuestUser(): Promise<User[]> {
   try {
     const guestId = generateUUID();
@@ -65,7 +72,7 @@ export async function createGuestUser(): Promise<User[]> {
   }
 }
 
-// Chat ownership functions
+/** Creates a mapping between a v0 chat ID and a user ID. */
 export async function createChatOwnership({
   v0ChatId,
   userId,
@@ -87,6 +94,7 @@ export async function createChatOwnership({
   }
 }
 
+/** Gets the ownership record for a v0 chat ID. */
 export async function getChatOwnership({ v0ChatId }: { v0ChatId: string }) {
   try {
     const [ownership] = await getDb()
@@ -100,6 +108,7 @@ export async function getChatOwnership({ v0ChatId }: { v0ChatId: string }) {
   }
 }
 
+/** Gets all chat IDs owned by a user, sorted by creation date (newest first). */
 export async function getChatIdsByUserId({
   userId,
 }: {
@@ -119,6 +128,7 @@ export async function getChatIdsByUserId({
   }
 }
 
+/** Deletes the ownership record for a v0 chat ID. */
 export async function deleteChatOwnership({ v0ChatId }: { v0ChatId: string }) {
   try {
     return await getDb()
@@ -130,7 +140,10 @@ export async function deleteChatOwnership({ v0ChatId }: { v0ChatId: string }) {
   }
 }
 
-// Rate limiting functions
+/**
+ * Gets the number of chats created by a user in the specified time window.
+ * Used for rate limiting authenticated users.
+ */
 export async function getChatCountByUserId({
   userId,
   differenceInHours,
@@ -158,6 +171,10 @@ export async function getChatCountByUserId({
   }
 }
 
+/**
+ * Gets the number of chats created from an IP address in the specified time window.
+ * Used for rate limiting anonymous users.
+ */
 export async function getChatCountByIP({
   ipAddress,
   differenceInHours,
@@ -185,6 +202,7 @@ export async function getChatCountByIP({
   }
 }
 
+/** Logs an anonymous chat creation for rate limiting purposes. */
 export async function createAnonymousChatLog({
   ipAddress,
   v0ChatId,

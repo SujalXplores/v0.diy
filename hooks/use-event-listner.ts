@@ -29,7 +29,9 @@ export function useEventListener<
     const targetElement =
       (target && "current" in target ? target.current : target) || window;
 
-    if (!targetElement?.addEventListener) return;
+    if (!targetElement?.addEventListener) {
+      return;
+    }
 
     const eventListener = (event: EventMapOf<T>[K]) =>
       savedHandler.current(event);

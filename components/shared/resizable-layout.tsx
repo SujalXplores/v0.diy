@@ -78,13 +78,12 @@ export function ResizableLayout({
       </div>
 
       {/* Resize Handle */}
-      <div
+      <hr
         className={cn(
-          "group relative w-px cursor-col-resize bg-border transition-all dark:bg-input",
+          "group relative m-0 h-full w-px cursor-col-resize border-0 bg-border transition-all dark:bg-input",
           isDragging && "bg-blue-500 dark:bg-blue-400",
         )}
         onMouseDown={handleMouseDown}
-        role="separator"
         aria-label="Resize panels"
         aria-orientation="vertical"
         aria-valuenow={leftWidth}
@@ -99,18 +98,15 @@ export function ResizableLayout({
             setLeftWidth(newLeftWidth);
           }
         }}
-      >
-        {/* Blue highlight on hover - 3px wide */}
+      />
+      {/* Blue highlight on hover - 3px wide */}
+      {isDragging && (
         <div
           className={cn(
-            "-translate-x-1/2 absolute inset-y-0 left-1/2 w-0 bg-blue-500 transition-all duration-200 dark:bg-blue-400",
-            "group-hover:w-[3px]",
-            isDragging && "w-[3px]",
+            "-translate-x-1/2 absolute inset-y-0 left-1/2 w-[3px] bg-blue-500 transition-all duration-200 dark:bg-blue-400",
           )}
         />
-        {/* Wider hit area for better UX */}
-        <div className="-left-2 -right-2 absolute inset-y-0" />
-      </div>
+      )}
 
       {/* Right Panel */}
       <div className="flex flex-1 flex-col">{rightPanel}</div>

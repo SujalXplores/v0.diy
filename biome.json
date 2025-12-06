@@ -39,7 +39,8 @@
     "rules": {
       "recommended": true,
       "a11y": {
-        "recommended": true
+        "recommended": true,
+        "useSemanticElements": "warn"
       },
       "complexity": {
         "recommended": true,
@@ -99,6 +100,10 @@
     }
   },
   "css": {
+    "parser": {
+      "cssModules": true,
+      "tailwindDirectives": true
+    },
     "linter": {
       "enabled": true
     },

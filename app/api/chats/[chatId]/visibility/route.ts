@@ -3,7 +3,6 @@ import { createClient } from "v0-sdk";
 import { auth } from "@/app/(auth)/auth";
 import { getChatOwnership } from "@/lib/db/queries";
 
-// Create v0 client with custom baseUrl if V0_API_URL is set
 const v0 = createClient(
   process.env.V0_API_URL ? { baseUrl: process.env.V0_API_URL } : {},
 );
@@ -30,7 +29,6 @@ export async function PATCH(
       );
     }
 
-    // Check if user owns this chat
     const ownership = await getChatOwnership({ v0ChatId: chatId });
     if (!ownership || ownership.user_id !== session.user.id) {
       return NextResponse.json(
@@ -53,25 +51,14 @@ export async function PATCH(
       );
     }
 
-    console.log("Changing chat visibility:", chatId, "to:", privacy);
-
-    // Update chat privacy via v0 API
     const updatedChat = await v0.chats.update({
       chatId,
       privacy,
     });
 
-    console.log("Chat visibility changed successfully:", chatId);
-
     return NextResponse.json(updatedChat);
   } catch (error) {
     console.error("Change Chat Visibility Error:", error);
-
-    // Log more detailed error information
-    if (error instanceof Error) {
-      console.error("Error message:", error.message);
-      console.error("Error stack:", error.stack);
-    }
 
     return NextResponse.json(
       {

@@ -8,6 +8,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { GitHubIcon } from "@/components/ui/icons";
 import { UserNav } from "@/components/user-nav";
+import { cn } from "@/lib/utils";
 import { ChatSelector } from "./chat-selector";
 
 interface AppHeaderProps {
@@ -53,7 +54,7 @@ export function AppHeader({ className = "" }: AppHeaderProps) {
   };
 
   return (
-    <div className={`border-border border-b dark:border-input ${className}`}>
+    <div className={cn("border-border border-b dark:border-input", className)}>
       <Suspense fallback={null}>
         <SearchParamsHandler />
       </Suspense>
