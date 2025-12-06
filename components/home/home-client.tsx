@@ -432,7 +432,6 @@ export function HomeClient() {
               <ChatMessages
                 chatHistory={chatHistory}
                 isLoading={isLoading}
-                currentChat={currentChat}
                 onStreamingComplete={handleStreamingComplete}
                 onChatData={handleChatData}
                 onStreamingStarted={() => setIsLoading(false)}

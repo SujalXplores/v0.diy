@@ -11,9 +11,17 @@ import {
 } from "./schema";
 import { generateHashedPassword } from "./utils";
 
+function getDb() {
+  if (!db) {
+    throw new Error("Database not initialized. Ensure POSTGRES_URL is set.");
+  }
+
+  return db;
+}
+
 export async function getUser(email: string): Promise<User[]> {
   try {
-    return await db.select().from(users).where(eq(users.email, email));
+    return await getDb().select().from(users).where(eq(users.email, email));
   } catch (error) {
     console.error("Failed to get user from database");
     throw error;
@@ -26,7 +34,7 @@ export async function createUser(
 ): Promise<User[]> {
   try {
     const hashedPassword = generateHashedPassword(password);
-    return await db
+    return await getDb()
       .insert(users)
       .values({
         email,
@@ -44,7 +52,7 @@ export async function createGuestUser(): Promise<User[]> {
     const guestId = generateUUID();
     const guestEmail = `guest-${guestId}@example.com`;
 
-    return await db
+    return await getDb()
       .insert(users)
       .values({
         email: guestEmail,
@@ -66,7 +74,7 @@ export async function createChatOwnership({
   userId: string;
 }) {
   try {
-    return await db
+    return await getDb()
       .insert(chat_ownerships)
       .values({
         v0_chat_id: v0ChatId,
@@ -81,7 +89,7 @@ export async function createChatOwnership({
 
 export async function getChatOwnership({ v0ChatId }: { v0ChatId: string }) {
   try {
-    const [ownership] = await db
+    const [ownership] = await getDb()
       .select()
       .from(chat_ownerships)
       .where(eq(chat_ownerships.v0_chat_id, v0ChatId));
@@ -98,7 +106,7 @@ export async function getChatIdsByUserId({
   userId: string;
 }): Promise<string[]> {
   try {
-    const ownerships = await db
+    const ownerships = await getDb()
       .select({ v0ChatId: chat_ownerships.v0_chat_id })
       .from(chat_ownerships)
       .where(eq(chat_ownerships.user_id, userId))
@@ -113,7 +121,7 @@ export async function getChatIdsByUserId({
 
 export async function deleteChatOwnership({ v0ChatId }: { v0ChatId: string }) {
   try {
-    return await db
+    return await getDb()
       .delete(chat_ownerships)
       .where(eq(chat_ownerships.v0_chat_id, v0ChatId));
   } catch (error) {
@@ -133,7 +141,7 @@ export async function getChatCountByUserId({
   try {
     const hoursAgo = new Date(Date.now() - differenceInHours * 60 * 60 * 1000);
 
-    const [stats] = await db
+    const [stats] = await getDb()
       .select({ count: count(chat_ownerships.id) })
       .from(chat_ownerships)
       .where(
@@ -160,7 +168,7 @@ export async function getChatCountByIP({
   try {
     const hoursAgo = new Date(Date.now() - differenceInHours * 60 * 60 * 1000);
 
-    const [stats] = await db
+    const [stats] = await getDb()
       .select({ count: count(anonymous_chat_logs.id) })
       .from(anonymous_chat_logs)
       .where(
@@ -185,7 +193,7 @@ export async function createAnonymousChatLog({
   v0ChatId: string;
 }) {
   try {
-    return await db.insert(anonymous_chat_logs).values({
+    return await getDb().insert(anonymous_chat_logs).values({
       ip_address: ipAddress,
       v0_chat_id: v0ChatId,
     });

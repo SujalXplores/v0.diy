@@ -78,7 +78,6 @@ export function ChatDetailClient() {
             <ChatMessages
               chatHistory={chatHistory}
               isLoading={isLoading}
-              currentChat={currentChat || null}
               onStreamingComplete={handleStreamingComplete}
               onChatData={handleChatData}
               onStreamingStarted={() => setIsLoading(false)}

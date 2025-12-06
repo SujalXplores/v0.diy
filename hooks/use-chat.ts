@@ -1,3 +1,4 @@
+import type { MessageBinaryFormat } from "@v0-sdk/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR, { mutate } from "swr";
@@ -181,7 +182,9 @@ export function useChat(chatId: string) {
     }
   };
 
-  const handleStreamingComplete = async (finalContent: unknown[]) => {
+  const handleStreamingComplete = async (
+    finalContent: string | MessageBinaryFormat,
+  ) => {
     setIsStreaming(false);
     setIsLoading(false);
 
