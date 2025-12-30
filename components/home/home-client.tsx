@@ -152,6 +152,27 @@ export function HomeClient() {
     setIsDragOver(false);
   };
 
+  const getErrorMessage = async (response: Response) => {
+    let errorMessage =
+      "Sorry, there was an error processing your message. Please try again.";
+    try {
+      const errorData = await response.json();
+      if (errorData.message) {
+        errorMessage = errorData.message;
+      } else if (response.status === 429) {
+        errorMessage =
+          "You have exceeded your maximum number of messages for the day. Please try again later.";
+      }
+    } catch (parseError) {
+      console.error("Error parsing error response:", parseError);
+      if (response.status === 429) {
+        errorMessage =
+          "You have exceeded your maximum number of messages for the day. Please try again later.";
+      }
+    }
+    return errorMessage;
+  };
+
   const handleSendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!message.trim() || isLoading) {
@@ -191,24 +212,7 @@ export function HomeClient() {
       });
 
       if (!response.ok) {
-        // Try to get the specific error message from the response
-        let errorMessage =
-          "Sorry, there was an error processing your message. Please try again.";
-        try {
-          const errorData = await response.json();
-          if (errorData.message) {
-            errorMessage = errorData.message;
-          } else if (response.status === 429) {
-            errorMessage =
-              "You have exceeded your maximum number of messages for the day. Please try again later.";
-          }
-        } catch (parseError) {
-          console.error("Error parsing error response:", parseError);
-          if (response.status === 429) {
-            errorMessage =
-              "You have exceeded your maximum number of messages for the day. Please try again later.";
-          }
-        }
+        const errorMessage = await getErrorMessage(response);
         throw new Error(errorMessage);
       }
 
@@ -362,24 +366,7 @@ export function HomeClient() {
       });
 
       if (!response.ok) {
-        // Try to get the specific error message from the response
-        let errorMessage =
-          "Sorry, there was an error processing your message. Please try again.";
-        try {
-          const errorData = await response.json();
-          if (errorData.message) {
-            errorMessage = errorData.message;
-          } else if (response.status === 429) {
-            errorMessage =
-              "You have exceeded your maximum number of messages for the day. Please try again later.";
-          }
-        } catch (parseError) {
-          console.error("Error parsing error response:", parseError);
-          if (response.status === 429) {
-            errorMessage =
-              "You have exceeded your maximum number of messages for the day. Please try again later.";
-          }
-        }
+        const errorMessage = await getErrorMessage(response);
         throw new Error(errorMessage);
       }
 
@@ -523,7 +510,7 @@ export function HomeClient() {
                 onChange={(e) => setMessage(e.target.value)}
                 value={message}
                 placeholder="Describe what you want to build..."
-                className="min-h-[80px] text-base"
+                className="min-h-20 text-base"
                 disabled={isLoading}
               />
               <PromptInputToolbar>
