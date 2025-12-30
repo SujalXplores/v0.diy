@@ -26,7 +26,7 @@
   "editor.formatOnSave": true,
   "editor.formatOnType": false,
   "editor.guides.bracketPairs": "active",
-  "editor.hover.enabled": true,
+  "editor.hover.enabled": "on",
   "editor.inlineSuggest.enabled": true,
   "editor.insertSpaces": true,
   "editor.linkedEditing": true,
