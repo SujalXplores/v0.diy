@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, type ReactNode, useContext, useState } from "react";
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 
 interface StreamingHandoff {
   chatId: string | null;
@@ -9,57 +16,63 @@ interface StreamingHandoff {
 }
 
 interface StreamingContextType {
-  handoff: StreamingHandoff;
-  startHandoff: (
+  readonly handoff: StreamingHandoff;
+  readonly startHandoff: (
     chatId: string,
     stream: ReadableStream<Uint8Array>,
     userMessage: string,
   ) => void;
-  clearHandoff: () => void;
+  readonly clearHandoff: () => void;
 }
 
 const StreamingContext = createContext<StreamingContextType | null>(null);
 
-export function useStreaming() {
+export const useStreaming = (): StreamingContextType => {
   const context = useContext(StreamingContext);
   if (!context) {
-    throw new Error("useStreaming must be used within a StreamingProvider");
+    throw new Error("useStreaming must be used within a <StreamingProvider />");
   }
   return context;
-}
+};
 
 interface StreamingProviderProps {
-  children: ReactNode;
+  readonly children: ReactNode;
 }
 
-export function StreamingProvider({ children }: StreamingProviderProps) {
+export const StreamingProvider = ({ children }: StreamingProviderProps) => {
   const [handoff, setHandoff] = useState<StreamingHandoff>({
     chatId: null,
     stream: null,
     userMessage: null,
   });
 
-  const startHandoff = (
-    chatId: string,
-    stream: ReadableStream<Uint8Array>,
-    userMessage: string,
-  ) => {
-    setHandoff({ chatId, stream, userMessage });
-  };
+  const startHandoff = useCallback(
+    (
+      chatId: string,
+      stream: ReadableStream<Uint8Array>,
+      userMessage: string,
+    ) => {
+      setHandoff({ chatId, stream, userMessage });
+    },
+    [],
+  );
 
-  const clearHandoff = () => {
+  const clearHandoff = useCallback(() => {
     setHandoff({ chatId: null, stream: null, userMessage: null });
-  };
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      handoff,
+      startHandoff,
+      clearHandoff,
+    }),
+    [handoff, startHandoff, clearHandoff],
+  );
 
   return (
-    <StreamingContext.Provider
-      value={{
-        handoff,
-        startHandoff,
-        clearHandoff,
-      }}
-    >
+    <StreamingContext.Provider value={value}>
       {children}
     </StreamingContext.Provider>
   );
-}
+};

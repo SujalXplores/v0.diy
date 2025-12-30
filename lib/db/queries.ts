@@ -11,22 +11,36 @@ import {
 } from "./schema";
 import { generateHashedPassword } from "./utils";
 
+/**
+ * Gets the database instance, throwing if not initialized.
+ * @throws Error if POSTGRES_URL is not set
+ */
+function getDb() {
+  if (!db) {
+    throw new Error("Database not initialized. Ensure POSTGRES_URL is set.");
+  }
+
+  return db;
+}
+
+/** Retrieves a user by email address. */
 export async function getUser(email: string): Promise<User[]> {
   try {
-    return await db.select().from(users).where(eq(users.email, email));
+    return await getDb().select().from(users).where(eq(users.email, email));
   } catch (error) {
     console.error("Failed to get user from database");
     throw error;
   }
 }
 
+/** Creates a new user with email and password. */
 export async function createUser(
   email: string,
   password: string,
 ): Promise<User[]> {
   try {
     const hashedPassword = generateHashedPassword(password);
-    return await db
+    return await getDb()
       .insert(users)
       .values({
         email,
@@ -39,12 +53,13 @@ export async function createUser(
   }
 }
 
+/** Creates a guest user with auto-generated credentials. */
 export async function createGuestUser(): Promise<User[]> {
   try {
     const guestId = generateUUID();
     const guestEmail = `guest-${guestId}@example.com`;
 
-    return await db
+    return await getDb()
       .insert(users)
       .values({
         email: guestEmail,
@@ -57,7 +72,7 @@ export async function createGuestUser(): Promise<User[]> {
   }
 }
 
-// Chat ownership functions
+/** Creates a mapping between a v0 chat ID and a user ID. */
 export async function createChatOwnership({
   v0ChatId,
   userId,
@@ -66,7 +81,7 @@ export async function createChatOwnership({
   userId: string;
 }) {
   try {
-    return await db
+    return await getDb()
       .insert(chat_ownerships)
       .values({
         v0_chat_id: v0ChatId,
@@ -79,9 +94,10 @@ export async function createChatOwnership({
   }
 }
 
+/** Gets the ownership record for a v0 chat ID. */
 export async function getChatOwnership({ v0ChatId }: { v0ChatId: string }) {
   try {
-    const [ownership] = await db
+    const [ownership] = await getDb()
       .select()
       .from(chat_ownerships)
       .where(eq(chat_ownerships.v0_chat_id, v0ChatId));
@@ -92,13 +108,14 @@ export async function getChatOwnership({ v0ChatId }: { v0ChatId: string }) {
   }
 }
 
+/** Gets all chat IDs owned by a user, sorted by creation date (newest first). */
 export async function getChatIdsByUserId({
   userId,
 }: {
   userId: string;
 }): Promise<string[]> {
   try {
-    const ownerships = await db
+    const ownerships = await getDb()
       .select({ v0ChatId: chat_ownerships.v0_chat_id })
       .from(chat_ownerships)
       .where(eq(chat_ownerships.user_id, userId))
@@ -111,9 +128,10 @@ export async function getChatIdsByUserId({
   }
 }
 
+/** Deletes the ownership record for a v0 chat ID. */
 export async function deleteChatOwnership({ v0ChatId }: { v0ChatId: string }) {
   try {
-    return await db
+    return await getDb()
       .delete(chat_ownerships)
       .where(eq(chat_ownerships.v0_chat_id, v0ChatId));
   } catch (error) {
@@ -122,7 +140,10 @@ export async function deleteChatOwnership({ v0ChatId }: { v0ChatId: string }) {
   }
 }
 
-// Rate limiting functions
+/**
+ * Gets the number of chats created by a user in the specified time window.
+ * Used for rate limiting authenticated users.
+ */
 export async function getChatCountByUserId({
   userId,
   differenceInHours,
@@ -133,7 +154,7 @@ export async function getChatCountByUserId({
   try {
     const hoursAgo = new Date(Date.now() - differenceInHours * 60 * 60 * 1000);
 
-    const [stats] = await db
+    const [stats] = await getDb()
       .select({ count: count(chat_ownerships.id) })
       .from(chat_ownerships)
       .where(
@@ -150,6 +171,10 @@ export async function getChatCountByUserId({
   }
 }
 
+/**
+ * Gets the number of chats created from an IP address in the specified time window.
+ * Used for rate limiting anonymous users.
+ */
 export async function getChatCountByIP({
   ipAddress,
   differenceInHours,
@@ -160,7 +185,7 @@ export async function getChatCountByIP({
   try {
     const hoursAgo = new Date(Date.now() - differenceInHours * 60 * 60 * 1000);
 
-    const [stats] = await db
+    const [stats] = await getDb()
       .select({ count: count(anonymous_chat_logs.id) })
       .from(anonymous_chat_logs)
       .where(
@@ -177,6 +202,7 @@ export async function getChatCountByIP({
   }
 }
 
+/** Logs an anonymous chat creation for rate limiting purposes. */
 export async function createAnonymousChatLog({
   ipAddress,
   v0ChatId,
@@ -185,7 +211,7 @@ export async function createAnonymousChatLog({
   v0ChatId: string;
 }) {
   try {
-    return await db.insert(anonymous_chat_logs).values({
+    return await getDb().insert(anonymous_chat_logs).values({
       ip_address: ipAddress,
       v0_chat_id: v0ChatId,
     });

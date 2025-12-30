@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import { redirect } from "next/navigation";
 import { signIn } from "@/app/(auth)/auth";
 
@@ -10,7 +11,7 @@ export async function GET(request: Request) {
   });
 
   if (redirectUrl) {
-    redirect(redirectUrl);
+    redirect(redirectUrl as Route);
   }
 
   redirect("/");

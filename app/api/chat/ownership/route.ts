@@ -14,7 +14,6 @@ function getClientIP(request: NextRequest): string {
     return realIP;
   }
 
-  // Fallback to connection remote address or unknown
   return "unknown";
 }
 
@@ -31,20 +30,16 @@ export async function POST(request: NextRequest) {
     }
 
     if (session?.user?.id) {
-      // Authenticated user - create ownership mapping
       await createChatOwnership({
         v0ChatId: chatId,
         userId: session.user.id,
       });
-      console.log("Chat ownership created via API:", chatId);
     } else {
-      // Anonymous user - log for rate limiting
       const clientIP = getClientIP(request);
       await createAnonymousChatLog({
         ipAddress: clientIP,
         v0ChatId: chatId,
       });
-      console.log("Anonymous chat logged via API:", chatId, "IP:", clientIP);
     }
 
     return NextResponse.json({ success: true });

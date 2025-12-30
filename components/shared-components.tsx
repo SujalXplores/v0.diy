@@ -15,9 +15,14 @@ import {
   Task,
   TaskContent,
   TaskItem,
-  TaskItemFile,
   TaskTrigger,
 } from "@/components/ai-elements/task";
+import {
+  renderFallbackTaskPart,
+  renderTaskPart,
+} from "@/lib/task-part-renderers";
+import { cn } from "@/lib/utils";
+import type { TaskPart, TaskPartChangedFile } from "@/types/chat";
 
 // Wrapper component to adapt AI Elements Reasoning to @v0-sdk/react ThinkingSection
 export const ThinkingSectionWrapper = ({
@@ -59,11 +64,6 @@ export const TaskSectionWrapper = ({
   collapsed,
   onCollapse,
   children,
-  taskIcon,
-  chevronRightIcon,
-  chevronDownIcon,
-  iconRenderer,
-  ...props
 }: TaskSectionProps) => {
   return (
     <Task
@@ -77,250 +77,20 @@ export const TaskSectionWrapper = ({
           parts.length > 0 &&
           parts.map((part, index) => {
             if (typeof part === "string") {
-              return <TaskItem key={index}>{part}</TaskItem>;
-            }
-
-            // Handle structured task data with proper AI Elements components
-            if (part && typeof part === "object") {
-              const partObj = part as any;
-
-              if (partObj.type === "starting-repo-search" && partObj.query) {
-                return (
-                  <TaskItem key={index}>Searching: "{partObj.query}"</TaskItem>
-                );
-              }
-
-              if (
-                partObj.type === "select-files" &&
-                Array.isArray(partObj.filePaths)
-              ) {
-                return (
-                  <TaskItem key={index}>
-                    Read{" "}
-                    {partObj.filePaths.map((file: string, i: number) => (
-                      <TaskItemFile key={i}>
-                        {file.split("/").pop()}
-                      </TaskItemFile>
-                    ))}
-                  </TaskItem>
-                );
-              }
-
-              if (partObj.type === "fetching-diagnostics") {
-                return <TaskItem key={index}>Checking for issues...</TaskItem>;
-              }
-
-              if (partObj.type === "diagnostics-passed") {
-                return <TaskItem key={index}>✓ No issues found</TaskItem>;
-              }
-
-              // Handle task-read-file-v1 part types
-              if (partObj.type === "reading-file" && partObj.filePath) {
-                return (
-                  <TaskItem key={index}>
-                    Reading file <TaskItemFile>{partObj.filePath}</TaskItemFile>
-                  </TaskItem>
-                );
-              }
-
-              // Handle task-coding-v1 part types
-              if (partObj.type === "code-project" && partObj.changedFiles) {
-                return (
-                  <TaskItem key={index}>
-                    Editing{" "}
-                    {partObj.changedFiles.map((file: any, i: number) => (
-                      <TaskItemFile key={i}>
-                        {file.fileName || file.baseName}
-                      </TaskItemFile>
-                    ))}
-                  </TaskItem>
-                );
-              }
-
-              if (partObj.type === "launch-tasks") {
-                return <TaskItem key={index}>Starting tasks...</TaskItem>;
-              }
-
-              // Handle task-search-web-v1 part types
-              if (partObj.type === "starting-web-search" && partObj.query) {
-                return (
-                  <TaskItem key={index}>Searching: "{partObj.query}"</TaskItem>
-                );
-              }
-
-              if (partObj.type === "got-results" && partObj.count) {
-                return (
-                  <TaskItem key={index}>Found {partObj.count} results</TaskItem>
-                );
-              }
-
-              if (partObj.type === "finished-web-search" && partObj.answer) {
-                return (
-                  <TaskItem key={index}>
-                    <div className="text-gray-700 text-sm leading-relaxed dark:text-gray-300">
-                      {partObj.answer}
-                    </div>
-                  </TaskItem>
-                );
-              }
-
-              // Handle design inspiration task parts
-              if (partObj.type === "generating-design-inspiration") {
-                return (
-                  <TaskItem key={index}>
-                    Generating design inspiration...
-                  </TaskItem>
-                );
-              }
-
-              if (
-                partObj.type === "design-inspiration-complete" &&
-                Array.isArray(partObj.inspirations)
-              ) {
-                return (
-                  <TaskItem key={index}>
-                    <div className="space-y-2">
-                      <div className="text-gray-700 text-sm dark:text-gray-300">
-                        Generated {partObj.inspirations.length} design
-                        inspirations
-                      </div>
-                      {partObj.inspirations
-                        .slice(0, 3)
-                        .map((inspiration: any, i: number) => (
-                          <div
-                            key={i}
-                            className="rounded bg-gray-100 p-2 text-gray-600 text-xs dark:bg-gray-800 dark:text-gray-400"
-                          >
-                            {inspiration.title ||
-                              inspiration.description ||
-                              `Inspiration ${i + 1}`}
-                          </div>
-                        ))}
-                    </div>
-                  </TaskItem>
-                );
-              }
-
-              // Handle other potential task types
-              if (partObj.type === "analyzing-requirements") {
-                return (
-                  <TaskItem key={index}>Analyzing requirements...</TaskItem>
-                );
-              }
-
-              if (
-                partObj.type === "requirements-complete" &&
-                partObj.requirements
-              ) {
-                return (
-                  <TaskItem key={index}>
-                    <div className="text-gray-700 text-sm dark:text-gray-300">
-                      Analyzed {partObj.requirements.length || "several"}{" "}
-                      requirements
-                    </div>
-                  </TaskItem>
-                );
-              }
-
-              // Handle additional common task part types
-              if (partObj.type === "thinking" || partObj.type === "analyzing") {
-                return (
-                  <TaskItem key={index}>
-                    <div className="text-gray-600 text-sm italic dark:text-gray-400">
-                      Thinking...
-                    </div>
-                  </TaskItem>
-                );
-              }
-
-              if (partObj.type === "processing" || partObj.type === "working") {
-                return (
-                  <TaskItem key={index}>
-                    <div className="text-gray-600 text-sm dark:text-gray-400">
-                      Processing...
-                    </div>
-                  </TaskItem>
-                );
-              }
-
-              if (partObj.type === "complete" || partObj.type === "finished") {
-                return (
-                  <TaskItem key={index}>
-                    <div className="text-green-600 text-sm dark:text-green-400">
-                      ✓ Complete
-                    </div>
-                  </TaskItem>
-                );
-              }
-
-              // Handle error states
-              if (partObj.type === "error" || partObj.type === "failed") {
-                return (
-                  <TaskItem key={index}>
-                    <div className="text-red-600 text-sm dark:text-red-400">
-                      ✗ {partObj.error || partObj.message || "Task failed"}
-                    </div>
-                  </TaskItem>
-                );
-              }
-
-              // Fallback for other structured data
-              // Try to extract meaningful information from unknown task parts
-              const taskType = partObj.type || "unknown";
-              const status = partObj.status;
-              const message =
-                partObj.message || partObj.description || partObj.text;
-
-              if (message) {
-                return (
-                  <TaskItem key={index}>
-                    <div className="text-gray-700 text-sm dark:text-gray-300">
-                      {message}
-                    </div>
-                  </TaskItem>
-                );
-              }
-
-              if (status) {
-                return (
-                  <TaskItem key={index}>
-                    <div className="text-gray-600 text-sm capitalize dark:text-gray-400">
-                      {status.replace(/-/g, " ")}...
-                    </div>
-                  </TaskItem>
-                );
-              }
-
-              // Show task type as a readable label
-              if (taskType !== "unknown") {
-                const readableType = taskType
-                  .replace(/-/g, " ")
-                  .replace(/([a-z])([A-Z])/g, "$1 $2")
-                  .toLowerCase()
-                  .replace(/^\w/, (c: string) => c.toUpperCase());
-
-                return (
-                  <TaskItem key={index}>
-                    <div className="text-gray-600 text-sm dark:text-gray-400">
-                      {readableType}
-                    </div>
-                  </TaskItem>
-                );
-              }
-
-              // Final fallback - only show JSON for truly unknown structures
               return (
-                <TaskItem key={index}>
-                  <details className="text-xs">
-                    <summary className="cursor-pointer text-gray-500 dark:text-gray-400">
-                      Unknown task part (click to expand)
-                    </summary>
-                    <div className="mt-2 rounded bg-gray-100 p-2 font-mono dark:bg-gray-800">
-                      {JSON.stringify(part, null, 2)}
-                    </div>
-                  </details>
+                <TaskItem key={`part-${part.slice(0, 20)}-${index}`}>
+                  {part}
                 </TaskItem>
               );
+            }
+
+            if (part && typeof part === "object") {
+              const partObj = part as TaskPart;
+              const rendered = renderTaskPart(partObj, index);
+              if (rendered) {
+                return rendered;
+              }
+              return renderFallbackTaskPart(partObj, index);
             }
 
             return null;
@@ -348,9 +118,10 @@ export const CodeProjectPartWrapper = ({
 
   return (
     <div
-      className={`my-6 rounded-lg border border-border dark:border-input ${
-        className || ""
-      }`}
+      className={cn(
+        "my-6 rounded-lg border border-border dark:border-input",
+        className,
+      )}
       {...props}
     >
       <button
@@ -378,9 +149,10 @@ export const CodeProjectPartWrapper = ({
             v1
           </span>
           <svg
-            className={`h-4 w-4 text-gray-400 transition-transform ${
-              isCollapsed ? "" : "rotate-90"
-            }`}
+            className={cn(
+              "h-4 w-4 text-gray-400 transition-transform",
+              !isCollapsed && "rotate-90",
+            )}
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -427,18 +199,24 @@ export const CodeProjectPartWrapper = ({
 
 // Shared components object that can be used by both StreamingMessage and MessageRenderer
 // Custom TaskSection that handles code projects properly
-const CustomTaskSectionWrapper = (props: any) => {
+// Extended type for streaming data that may include additional task properties
+type ExtendedTaskSectionProps = TaskSectionProps & {
+  taskNameComplete?: string;
+  taskNameActive?: string;
+};
+
+const CustomTaskSectionWrapper = (props: ExtendedTaskSectionProps) => {
   // If this task contains code project parts, render as CodeProjectPart instead
   if (
     props.parts?.some(
-      (part: any) =>
+      (part: string | TaskPart) =>
         part && typeof part === "object" && part.type === "code-project",
     )
   ) {
     const codeProjectPart = props.parts.find(
-      (part: any) =>
+      (part: string | TaskPart) =>
         part && typeof part === "object" && part.type === "code-project",
-    );
+    ) as TaskPart | undefined;
 
     if (codeProjectPart) {
       return (
@@ -455,9 +233,9 @@ const CustomTaskSectionWrapper = (props: any) => {
               <div className="p-4">
                 <div className="space-y-2">
                   {codeProjectPart.changedFiles.map(
-                    (file: any, index: number) => (
+                    (file: TaskPartChangedFile, index: number) => (
                       <div
-                        key={index}
+                        key={file.fileName || file.baseName || `file-${index}`}
                         className="flex items-center gap-2 text-black text-sm dark:text-white"
                       >
                         <svg

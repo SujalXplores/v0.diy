@@ -12,6 +12,7 @@ import { PreviewPanel } from "@/components/chat/preview-panel";
 import { AppHeader } from "@/components/shared/app-header";
 import { ResizableLayout } from "@/components/shared/resizable-layout";
 import { useChat } from "@/hooks/use-chat";
+import { useEventListener } from "@/hooks/use-event-listner";
 import { cn } from "@/lib/utils";
 
 export function ChatDetailClient() {
@@ -48,16 +49,11 @@ export function ChatDetailClient() {
   };
 
   // Handle fullscreen keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && isFullscreen) {
-        setIsFullscreen(false);
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isFullscreen]);
+  useEventListener<Window, "keydown">("keydown", (event) => {
+    if (event.key === "Escape" && isFullscreen) {
+      setIsFullscreen(false);
+    }
+  });
 
   // Auto-focus the textarea on page load
   useEffect(() => {
@@ -82,7 +78,6 @@ export function ChatDetailClient() {
             <ChatMessages
               chatHistory={chatHistory}
               isLoading={isLoading}
-              currentChat={currentChat || null}
               onStreamingComplete={handleStreamingComplete}
               onChatData={handleChatData}
               onStreamingStarted={() => setIsLoading(false)}
