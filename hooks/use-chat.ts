@@ -6,6 +6,109 @@ import { useStreaming } from "@/contexts/streaming-context";
 import type { Chat, ChatData, ChatMessage } from "@/types/chat";
 
 /**
+ * Extracts a chat ID from a nested content structure.
+ * Validates that the ID looks like a real chat ID (UUID-like format).
+ */
+function extractChatIdFromContent(content: unknown[]): string | undefined {
+  let foundChatId: string | undefined;
+
+  const isValidChatId = (id: string): boolean => {
+    if (id === "hello-world" || id.length <= 10) {
+      return false;
+    }
+    return (id.includes("-") && id.length > 20) || id.length > 15;
+  };
+
+  const search = (obj: unknown): void => {
+    if (foundChatId || !obj || typeof obj !== "object") {
+      return;
+    }
+
+    const record = obj as Record<string, unknown>;
+
+    if (
+      record.chatId &&
+      typeof record.chatId === "string" &&
+      isValidChatId(record.chatId)
+    ) {
+      foundChatId = record.chatId;
+      return;
+    }
+
+    if (
+      !foundChatId &&
+      record.id &&
+      typeof record.id === "string" &&
+      isValidChatId(record.id)
+    ) {
+      foundChatId = record.id;
+      return;
+    }
+
+    if (Array.isArray(obj)) {
+      obj.forEach(search);
+    } else {
+      Object.values(record).forEach(search);
+    }
+  };
+
+  content.forEach(search);
+  return foundChatId;
+}
+
+/**
+ * Fetches chat details and updates SWR cache.
+ */
+async function fetchAndCacheChatDetails(chatId: string): Promise<void> {
+  try {
+    const response = await fetch(`/api/chats/${chatId}`);
+    if (response.ok) {
+      const chatDetails = await response.json();
+      const demoUrl = chatDetails?.latestVersion?.demoUrl || chatDetails?.demo;
+      mutate(`/api/chats/${chatId}`, { ...chatDetails, demo: demoUrl }, false);
+    } else {
+      mutate(
+        `/api/chats/${chatId}`,
+        { id: chatId, demo: `Generated Chat ${chatId}` },
+        false,
+      );
+    }
+  } catch (error) {
+    console.error("Error fetching chat details:", error);
+    mutate(
+      `/api/chats/${chatId}`,
+      { id: chatId, demo: `Generated Chat ${chatId}` },
+      false,
+    );
+  }
+}
+
+/**
+ * Parses error response and returns appropriate error message.
+ */
+async function parseErrorResponse(response: Response): Promise<string> {
+  const defaultMessage =
+    "Sorry, there was an error processing your message. Please try again.";
+  const rateLimitMessage =
+    "You have exceeded your maximum number of messages for the day. Please try again later.";
+
+  try {
+    const errorData = await response.json();
+    if (errorData.message) {
+      return errorData.message;
+    }
+    if (response.status === 429) {
+      return rateLimitMessage;
+    }
+  } catch {
+    if (response.status === 429) {
+      return rateLimitMessage;
+    }
+  }
+  return defaultMessage;
+}
+
+/**
  * Custom hook for managing chat state and interactions.
  *
  * Handles:
@@ -98,47 +201,25 @@ export function useChat(chatId: string) {
       const userMessage = message.trim();
       setMessage("");
       setIsLoading(true);
-
       setChatHistory((prev) => [
         ...prev,
         { type: "user", content: userMessage },
       ]);
 
       try {
-        // Use streaming mode
         const response = await fetch("/api/chat", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             message: userMessage,
-            chatId: chatId,
+            chatId,
             streaming: true,
             ...(attachments && attachments.length > 0 && { attachments }),
           }),
         });
 
         if (!response.ok) {
-          // Try to get the specific error message from the response
-          let errorMessage =
-            "Sorry, there was an error processing your message. Please try again.";
-          try {
-            const errorData = await response.json();
-            if (errorData.message) {
-              errorMessage = errorData.message;
-            } else if (response.status === 429) {
-              errorMessage =
-                "You have exceeded your maximum number of messages for the day. Please try again later.";
-            }
-          } catch (parseError) {
-            console.error("Error parsing error response:", parseError);
-            if (response.status === 429) {
-              errorMessage =
-                "You have exceeded your maximum number of messages for the day. Please try again later.";
-            }
-          }
-          throw new Error(errorMessage);
+          throw new Error(await parseErrorResponse(response));
         }
 
         if (!response.body) {
@@ -146,9 +227,6 @@ export function useChat(chatId: string) {
         }
 
         setIsStreaming(true);
-        // Keep isLoading true until streaming message has content
-
-        // Add placeholder for streaming response with the stream attached
         setChatHistory((prev) => [
           ...prev,
           {
@@ -160,19 +238,13 @@ export function useChat(chatId: string) {
         ]);
       } catch (error) {
         console.error("Error:", error);
-
-        // Use the specific error message if available, otherwise fall back to generic message
         const errorMessage =
           error instanceof Error
             ? error.message
             : "Sorry, there was an error processing your message. Please try again.";
-
         setChatHistory((prev) => [
           ...prev,
-          {
-            type: "assistant",
-            content: errorMessage,
-          },
+          { type: "assistant", content: errorMessage },
         ]);
         setIsLoading(false);
       }
@@ -185,135 +257,14 @@ export function useChat(chatId: string) {
       setIsStreaming(false);
       setIsLoading(false);
 
-      try {
-        const response = await fetch(`/api/chats/${chatId}`);
-        if (response.ok) {
-          const chatDetails = await response.json();
+      // Refresh current chat details
+      await fetchAndCacheChatDetails(chatId);
 
-          const demoUrl =
-            chatDetails?.latestVersion?.demoUrl || chatDetails?.demo;
-
-          // Update SWR cache with the latest chat data
-          mutate(
-            `/api/chats/${chatId}`,
-            {
-              ...chatDetails,
-              demo: demoUrl,
-            },
-            false,
-          );
-        } else {
-          console.warn(
-            "Failed to fetch updated chat details:",
-            response.status,
-          );
-          // Fallback to just refreshing the cache
-          mutate(`/api/chats/${chatId}`);
-        }
-      } catch (error) {
-        console.error("Error fetching updated chat details:", error);
-        // Fallback to just refreshing the cache
-        mutate(`/api/chats/${chatId}`);
-      }
-
-      // Try to extract chat ID from the final content if we don't have one yet
+      // Try to extract chat ID from final content if we don't have a current chat
       if (!currentChat && finalContent && Array.isArray(finalContent)) {
-        let newChatId: string | undefined;
-
-        // Search through the content structure for chat ID
-        const searchForChatId = (obj: unknown) => {
-          if (obj && typeof obj === "object") {
-            const objRecord = obj as Record<string, unknown>;
-
-            // Look for chat ID - be more specific about what we accept
-            if (objRecord.chatId && typeof objRecord.chatId === "string") {
-              // Validate that it looks like a real chat ID (UUID-like or specific format)
-              if (
-                objRecord.chatId.length > 10 &&
-                objRecord.chatId !== "hello-world"
-              ) {
-                console.log("Accepting chatId:", objRecord.chatId);
-                newChatId = objRecord.chatId;
-              }
-            }
-
-            // Only use 'id' if it's specifically a chat context and looks like a real ID
-            if (
-              !newChatId &&
-              objRecord.id &&
-              typeof objRecord.id === "string"
-            ) {
-              // More restrictive check for 'id' field - should look like UUID or be longer
-              if (
-                (objRecord.id.includes("-") && objRecord.id.length > 20) ||
-                (objRecord.id.length > 15 && objRecord.id !== "hello-world")
-              ) {
-                console.log("Accepting id as chatId:", objRecord.id);
-                newChatId = objRecord.id;
-              }
-            }
-
-            // Recursively search in arrays and objects
-            if (Array.isArray(obj)) {
-              obj.forEach(searchForChatId);
-            } else {
-              Object.values(objRecord).forEach(searchForChatId);
-            }
-          }
-        };
-
-        finalContent.forEach(searchForChatId);
-
+        const newChatId = extractChatIdFromContent(finalContent);
         if (newChatId) {
-          console.log("Found chat ID:", newChatId);
-          console.log("Fetching chat details to get demo URL...");
-
-          try {
-            // Fetch the full chat details to get the demo URL
-            const response = await fetch(`/api/chats/${newChatId}`);
-            if (response.ok) {
-              const chatDetails = await response.json();
-              console.log("Chat details:", chatDetails);
-
-              const demoUrl =
-                chatDetails?.latestVersion?.demoUrl || chatDetails?.demo;
-              console.log("Demo URL from chat details:", demoUrl);
-
-              // Update SWR cache with new chat data
-              mutate(
-                `/api/chats/${newChatId}`,
-                {
-                  id: newChatId,
-                  demo: demoUrl || `Generated Chat ${newChatId}`,
-                },
-                false,
-              );
-            } else {
-              console.warn("Failed to fetch chat details:", response.status);
-              // Update SWR cache with new chat data
-              mutate(
-                `/api/chats/${newChatId}`,
-                {
-                  id: newChatId,
-                  demo: `Generated Chat ${newChatId}`,
-                },
-                false,
-              );
-            }
-          } catch (error) {
-            console.error("Error fetching chat details:", error);
-            // Update SWR cache with new chat data
-            mutate(
-              `/api/chats/${newChatId}`,
-              {
-                id: newChatId,
-                demo: `Generated Chat ${newChatId}`,
-              },
-              false,
-            );
-          }
-        } else {
-          console.log("No chat ID found in final content");
+          await fetchAndCacheChatDetails(newChatId);
         }
       }
 

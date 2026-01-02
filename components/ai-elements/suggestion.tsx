@@ -58,12 +58,12 @@ export const Suggestions = ({
     <div className="relative">
       {/* Left fade overlay */}
       {canScrollLeft && (
-        <div className="-left-px -top-px pointer-events-none absolute z-10 h-[calc(100%+1px)] w-12 bg-gradient-to-r from-gray-50 to-transparent dark:from-black" />
+        <div className="pointer-events-none absolute -top-px -left-px z-10 h-[calc(100%+1px)] w-12 bg-gradient-to-r from-gray-50 to-transparent dark:from-black" />
       )}
 
       {/* Right fade overlay */}
       {canScrollRight && (
-        <div className="-right-px -top-px pointer-events-none absolute z-10 h-[calc(100%+1px)] w-12 bg-gradient-to-l from-gray-50 to-transparent dark:from-black" />
+        <div className="pointer-events-none absolute -top-px -right-px z-10 h-[calc(100%+1px)] w-12 bg-gradient-to-l from-gray-50 to-transparent dark:from-black" />
       )}
 
       <ScrollArea

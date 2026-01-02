@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -7,9 +8,13 @@ import { Suspense, useEffect } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { GitHubIcon } from "@/components/ui/icons";
-import { UserNav } from "@/components/user-nav";
 import { cn } from "@/lib/utils";
 import { ChatSelector } from "./chat-selector";
+
+const UserNav = dynamic(
+  () => import("@/components/user-nav").then((mod) => mod.UserNav),
+  { ssr: false },
+);
 
 interface AppHeaderProps {
   className?: string;

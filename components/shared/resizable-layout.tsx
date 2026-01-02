@@ -103,7 +103,7 @@ export function ResizableLayout({
       {isDragging && (
         <div
           className={cn(
-            "-translate-x-1/2 absolute inset-y-0 left-1/2 w-[3px] bg-blue-500 transition-all duration-200 dark:bg-blue-400",
+            "absolute inset-y-0 left-1/2 w-[3px] -translate-x-1/2 bg-blue-500 transition-all duration-200 dark:bg-blue-400",
           )}
         />
       )}

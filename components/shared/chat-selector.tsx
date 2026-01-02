@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -48,45 +48,50 @@ interface Chat {
   url?: string;
 }
 
-// Helper function to get display name for a chat
-const getChatDisplayName = (chat: Chat): string => {
-  return chat.name || `Chat ${chat.id.slice(0, 8)}...`;
+type PrivacyType = "public" | "private" | "team" | "team-edit" | "unlisted";
+
+const getChatDisplayName = (chat: Chat): string =>
+  chat.name || `Chat ${chat.id.slice(0, 8)}...`;
+
+const privacyConfig: Record<
+  PrivacyType,
+  { icon: typeof Eye; label: string; description: string }
+> = {
+  public: {
+    icon: Eye,
+    label: "Public",
+    description: "Anyone can see this chat",
+  },
+  private: {
+    icon: EyeOff,
+    label: "Private",
+    description: "Only you can see this chat",
+  },
+  team: {
+    icon: Users,
+    label: "Team",
+    description: "Team members can see this chat",
+  },
+  "team-edit": {
+    icon: Users,
+    label: "Team Edit",
+    description: "Team members can see and edit this chat",
+  },
+  unlisted: {
+    icon: Lock,
+    label: "Unlisted",
+    description: "Only people with the link can see this chat",
+  },
 };
 
-// Helper function to get privacy icon
 const getPrivacyIcon = (privacy: string) => {
-  switch (privacy) {
-    case "public":
-      return <Eye className="h-4 w-4" />;
-    case "private":
-      return <EyeOff className="h-4 w-4" />;
-    case "team":
-    case "team-edit":
-      return <Users className="h-4 w-4" />;
-    case "unlisted":
-      return <Lock className="h-4 w-4" />;
-    default:
-      return <EyeOff className="h-4 w-4" />;
-  }
+  const config = privacyConfig[privacy as PrivacyType] || privacyConfig.private;
+  const Icon = config.icon;
+  return <Icon className="h-4 w-4" />;
 };
 
-// Helper function to get privacy display name
-const getPrivacyDisplayName = (privacy: string) => {
-  switch (privacy) {
-    case "public":
-      return "Public";
-    case "private":
-      return "Private";
-    case "team":
-      return "Team";
-    case "team-edit":
-      return "Team Edit";
-    case "unlisted":
-      return "Unlisted";
-    default:
-      return "Private";
-  }
-};
+const getPrivacyDisplayName = (privacy: string) =>
+  privacyConfig[privacy as PrivacyType]?.label || "Private";
 
 export function ChatSelector() {
   const router = useRouter();
@@ -136,11 +141,12 @@ export function ChatSelector() {
     fetchChats();
   }, [session?.user?.id]);
 
-  const handleValueChange = (chatId: string) => {
-    router.push(`/chats/${chatId}`);
-  };
+  const handleValueChange = useCallback(
+    (chatId: string) => router.push(`/chats/${chatId}`),
+    [router],
+  );
 
-  const handleRenameChat = async () => {
+  const handleRenameChat = useCallback(async () => {
     if (!(renameChatName.trim() && currentChatId)) {
       return;
     }
@@ -149,12 +155,8 @@ export function ChatSelector() {
     try {
       const response = await fetch(`/api/chats/${currentChatId}`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: renameChatName.trim(),
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: renameChatName.trim() }),
       });
 
       if (!response.ok) {
@@ -162,15 +164,11 @@ export function ChatSelector() {
       }
 
       const updatedChat = await response.json();
-
-      // Update the chat in the list
       setChats((prev) =>
         prev.map((c) =>
           c.id === currentChatId ? { ...c, name: updatedChat.name } : c,
         ),
       );
-
-      // Close dialog and reset form
       setIsRenameDialogOpen(false);
       setRenameChatName("");
     } catch (error) {
@@ -178,9 +176,9 @@ export function ChatSelector() {
     } finally {
       setIsRenamingChat(false);
     }
-  };
+  }, [renameChatName, currentChatId]);
 
-  const handleDeleteChat = async () => {
+  const handleDeleteChat = useCallback(async () => {
     if (!currentChatId) {
       return;
     }
@@ -195,10 +193,7 @@ export function ChatSelector() {
         throw new Error("Failed to delete chat");
       }
 
-      // Remove the chat from the list
       setChats((prev) => prev.filter((c) => c.id !== currentChatId));
-
-      // Close dialog and navigate to home
       setIsDeleteDialogOpen(false);
       router.push("/");
     } catch (error) {
@@ -206,9 +201,9 @@ export function ChatSelector() {
     } finally {
       setIsDeletingChat(false);
     }
-  };
+  }, [currentChatId, router]);
 
-  const handleDuplicateChat = async () => {
+  const handleDuplicateChat = useCallback(async () => {
     if (!currentChatId) {
       return;
     }
@@ -217,9 +212,7 @@ export function ChatSelector() {
     try {
       const response = await fetch("/api/chat/fork", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ chatId: currentChatId }),
       });
 
@@ -228,8 +221,6 @@ export function ChatSelector() {
       }
 
       const result = await response.json();
-
-      // Close dialog and navigate to the new forked chat
       setIsDuplicateDialogOpen(false);
       router.push(`/chats/${result.id}`);
     } catch (error) {
@@ -237,9 +228,9 @@ export function ChatSelector() {
     } finally {
       setIsDuplicatingChat(false);
     }
-  };
+  }, [currentChatId, router]);
 
-  const handleChangeVisibility = async () => {
+  const handleChangeVisibility = useCallback(async () => {
     if (!currentChatId) {
       return;
     }
@@ -248,9 +239,7 @@ export function ChatSelector() {
     try {
       const response = await fetch(`/api/chats/${currentChatId}/visibility`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ privacy: selectedVisibility }),
       });
 
@@ -259,22 +248,24 @@ export function ChatSelector() {
       }
 
       const updatedChat = await response.json();
-
-      // Update the chat in the list
       setChats((prev) =>
         prev.map((c) =>
           c.id === currentChatId ? { ...c, privacy: updatedChat.privacy } : c,
         ),
       );
-
-      // Close dialog
       setIsVisibilityDialogOpen(false);
     } catch (error) {
       console.error("Error changing chat visibility:", error);
     } finally {
       setIsChangingVisibility(false);
     }
-  };
+  }, [currentChatId, selectedVisibility]);
+
+  const isAnyActionPending =
+    isRenamingChat ||
+    isDeletingChat ||
+    isDuplicatingChat ||
+    isChangingVisibility;
 
   // Don't show if user is not authenticated
   if (!session?.user?.id) {
@@ -330,12 +321,7 @@ export function ChatSelector() {
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 p-0"
-                disabled={
-                  isRenamingChat ||
-                  isDeletingChat ||
-                  isDuplicatingChat ||
-                  isChangingVisibility
-                }
+                disabled={isAnyActionPending}
               >
                 <MoreHorizontal className="h-4 w-4" />
                 <span className="sr-only">Chat options</span>
@@ -356,12 +342,7 @@ export function ChatSelector() {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => setIsDuplicateDialogOpen(true)}
-                disabled={
-                  isRenamingChat ||
-                  isDeletingChat ||
-                  isDuplicatingChat ||
-                  isChangingVisibility
-                }
+                disabled={isAnyActionPending}
               >
                 <Copy className="mr-2 h-4 w-4" />
                 Duplicate Chat
@@ -371,12 +352,7 @@ export function ChatSelector() {
                   setSelectedVisibility(currentChat.privacy || "private");
                   setIsVisibilityDialogOpen(true);
                 }}
-                disabled={
-                  isRenamingChat ||
-                  isDeletingChat ||
-                  isDuplicatingChat ||
-                  isChangingVisibility
-                }
+                disabled={isAnyActionPending}
               >
                 {getPrivacyIcon(currentChat.privacy || "private")}
                 <span className="ml-2">Change Visibility</span>
@@ -386,12 +362,7 @@ export function ChatSelector() {
                   setRenameChatName(currentChat.name || "");
                   setIsRenameDialogOpen(true);
                 }}
-                disabled={
-                  isRenamingChat ||
-                  isDeletingChat ||
-                  isDuplicatingChat ||
-                  isChangingVisibility
-                }
+                disabled={isAnyActionPending}
               >
                 <Edit2 className="mr-2 h-4 w-4" />
                 Rename Chat
@@ -399,12 +370,7 @@ export function ChatSelector() {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => setIsDeleteDialogOpen(true)}
-                disabled={
-                  isRenamingChat ||
-                  isDeletingChat ||
-                  isDuplicatingChat ||
-                  isChangingVisibility
-                }
+                disabled={isAnyActionPending}
                 className="text-destructive focus:text-destructive"
               >
                 <Trash2 className="mr-2 h-4 w-4" />

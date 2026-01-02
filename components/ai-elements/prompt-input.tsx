@@ -590,7 +590,7 @@ export const PromptInputImagePreview = ({
           {onRemove && (
             <button
               onClick={() => onRemove(attachment.id)}
-              className="-top-1 -right-1 absolute flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground opacity-0 transition-opacity group-hover:opacity-100"
+              className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground opacity-0 transition-opacity group-hover:opacity-100"
               type="button"
             >
               <XIcon className="size-3" />
