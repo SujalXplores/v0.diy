@@ -33,8 +33,8 @@ v0.diy is a self-hosted, open-source alternative to [v0.dev](https://v0.dev) tha
 |---------|-------------|
 | **AI Component Generation** | Convert natural language prompts into functional React components |
 | **Real-time Streaming** | Watch code generation happen live with streaming responses |
-| **Multi-tier Authentication** | Guest, anonymous, and registered user support with NextAuth.js |
-| **Rate Limiting** | Configurable daily message limits per user tier (anonymous: 3, guest: 5, regular: 50) |
+| **User Authentication** | Secure email/password authentication with NextAuth.js |
+| **Rate Limiting** | 50 messages per day for authenticated users |
 | **Persistent Chat History** | Conversations and generated components saved to PostgreSQL |
 | **Projects Dashboard** | View and manage all your generated projects |
 | **Live Preview** | Split-screen resizable layout with instant component preview |
@@ -152,7 +152,7 @@ v0.diy/
 │   │   ├── login/           # Login page
 │   │   └── register/        # Registration page
 │   ├── api/                 # API routes
-│   │   ├── auth/            # NextAuth & guest auth endpoints
+│   │   ├── auth/            # NextAuth endpoints
 │   │   ├── chat/            # Chat API (create, fork, delete)
 │   │   └── chats/           # Chat list & detail endpoints
 │   ├── chats/               # Chat pages
@@ -175,13 +175,15 @@ v0.diy/
 └── public/                  # Static assets
 ```
 
-## User Tiers & Rate Limits
+## Authentication & Rate Limits
+
+Login is required to use the chat functionality. Users must create an account or sign in before submitting prompts.
 
 | User Type | Max Messages/Day | Description |
 |-----------|------------------|-------------|
-| Anonymous | 3 | No account, tracked by IP address |
-| Guest | 5 | Temporary guest session |
-| Regular | 50 | Registered user account |
+| Registered | 50 | Email/password authenticated users |
+
+> **Note:** Unauthenticated users will be redirected to the login page when attempting to submit a prompt. Any typed message will be preserved and restored after login.
 
 ## Contributing
 

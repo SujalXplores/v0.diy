@@ -3,7 +3,8 @@
 import type { MessageBinaryFormat } from "@v0-sdk/react";
 import { StreamingMessage } from "@v0-sdk/react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Suspense, useEffect, useRef, useState } from "react";
 import {
   clearPromptFromStorage,
@@ -50,6 +51,8 @@ function SearchParamsHandler({ onReset }: { onReset: () => void }) {
 }
 
 export function HomeClient() {
+  const { status } = useSession();
+  const router = useRouter();
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showChatInterface, setShowChatInterface] = useState(false);
@@ -176,6 +179,13 @@ export function HomeClient() {
   const handleSendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!message.trim() || isLoading) {
+      return;
+    }
+
+    // Require authentication before sending messages
+    if (status !== "authenticated") {
+      // Message is already saved to sessionStorage via useEffect
+      router.push("/login?callbackUrl=/");
       return;
     }
 
@@ -342,6 +352,12 @@ export function HomeClient() {
   const handleChatSendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!message.trim() || isLoading || !currentChatId) {
+      return;
+    }
+
+    // Require authentication before sending messages
+    if (status !== "authenticated") {
+      router.push("/login?callbackUrl=/");
       return;
     }
 

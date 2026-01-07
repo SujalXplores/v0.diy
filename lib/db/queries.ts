@@ -1,14 +1,8 @@
 import "server-only";
 
 import { and, count, desc, eq, gte } from "drizzle-orm";
-import { generateUUID } from "../utils";
 import db from "./connection";
-import {
-  anonymous_chat_logs,
-  chat_ownerships,
-  type User,
-  users,
-} from "./schema";
+import { chat_ownerships, type User, users } from "./schema";
 import { generateHashedPassword } from "./utils";
 
 /**
@@ -49,25 +43,6 @@ export async function createUser(
       .returning();
   } catch (error) {
     console.error("Failed to create user in database");
-    throw error;
-  }
-}
-
-/** Creates a guest user with auto-generated credentials. */
-export async function createGuestUser(): Promise<User[]> {
-  try {
-    const guestId = generateUUID();
-    const guestEmail = `guest-${guestId}@example.com`;
-
-    return await getDb()
-      .insert(users)
-      .values({
-        email: guestEmail,
-        password: null,
-      })
-      .returning();
-  } catch (error) {
-    console.error("Failed to create guest user in database");
     throw error;
   }
 }
@@ -167,56 +142,6 @@ export async function getChatCountByUserId({
     return stats?.count || 0;
   } catch (error) {
     console.error("Failed to get chat count by user from database");
-    throw error;
-  }
-}
-
-/**
- * Gets the number of chats created from an IP address in the specified time window.
- * Used for rate limiting anonymous users.
- */
-export async function getChatCountByIP({
-  ipAddress,
-  differenceInHours,
-}: {
-  ipAddress: string;
-  differenceInHours: number;
-}): Promise<number> {
-  try {
-    const hoursAgo = new Date(Date.now() - differenceInHours * 60 * 60 * 1000);
-
-    const [stats] = await getDb()
-      .select({ count: count(anonymous_chat_logs.id) })
-      .from(anonymous_chat_logs)
-      .where(
-        and(
-          eq(anonymous_chat_logs.ip_address, ipAddress),
-          gte(anonymous_chat_logs.created_at, hoursAgo),
-        ),
-      );
-
-    return stats?.count || 0;
-  } catch (error) {
-    console.error("Failed to get chat count by IP from database");
-    throw error;
-  }
-}
-
-/** Logs an anonymous chat creation for rate limiting purposes. */
-export async function createAnonymousChatLog({
-  ipAddress,
-  v0ChatId,
-}: {
-  ipAddress: string;
-  v0ChatId: string;
-}) {
-  try {
-    return await getDb().insert(anonymous_chat_logs).values({
-      ip_address: ipAddress,
-      v0_chat_id: v0ChatId,
-    });
-  } catch (error) {
-    console.error("Failed to create anonymous chat log in database");
     throw error;
   }
 }

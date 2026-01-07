@@ -2,16 +2,8 @@ import { type NextRequest, NextResponse } from "next/server";
 import type { Session } from "next-auth";
 import { type ChatDetail, createClient } from "v0-sdk";
 import { auth } from "@/app/(auth)/auth";
-import {
-  createAnonymousChatLog,
-  createChatOwnership,
-  getChatCountByIP,
-  getChatCountByUserId,
-} from "@/lib/db/queries";
-import {
-  anonymousEntitlements,
-  entitlementsByUserType,
-} from "@/lib/entitlements";
+import { createChatOwnership, getChatCountByUserId } from "@/lib/db/queries";
+import { userEntitlements } from "@/lib/entitlements";
 import { ChatSDKError } from "@/lib/errors";
 
 const v0 = createClient(
@@ -24,43 +16,23 @@ const STREAMING_HEADERS = {
   Connection: "keep-alive",
 } as const;
 
-function getClientIP(request: NextRequest): string {
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) {
-    return forwarded.split(",")[0].trim();
-  }
-
-  const realIP = request.headers.get("x-real-ip");
-  if (realIP) {
-    return realIP;
-  }
-
-  return "unknown";
-}
-
 async function checkRateLimit(
   session: Session | null,
-  request: NextRequest,
 ): Promise<Response | null> {
-  if (session?.user?.id) {
-    const chatCount = await getChatCountByUserId({
-      userId: session.user.id,
-      differenceInHours: 24,
-    });
-    const userType = session.user.type;
-    if (chatCount >= entitlementsByUserType[userType].maxMessagesPerDay) {
-      return new ChatSDKError("rate_limit:chat").toResponse();
-    }
-  } else {
-    const clientIP = getClientIP(request);
-    const chatCount = await getChatCountByIP({
-      ipAddress: clientIP,
-      differenceInHours: 24,
-    });
-    if (chatCount >= anonymousEntitlements.maxMessagesPerDay) {
-      return new ChatSDKError("rate_limit:chat").toResponse();
-    }
+  // Require authentication
+  if (!session?.user?.id) {
+    return new ChatSDKError("unauthorized:chat").toResponse();
   }
+
+  const chatCount = await getChatCountByUserId({
+    userId: session.user.id,
+    differenceInHours: 24,
+  });
+
+  if (chatCount >= userEntitlements.maxMessagesPerDay) {
+    return new ChatSDKError("rate_limit:chat").toResponse();
+  }
+
   return null;
 }
 
@@ -71,17 +43,13 @@ function createStreamingResponse(stream: ReadableStream<Uint8Array>): Response {
 async function recordChatOwnership(
   chatId: string,
   session: Session | null,
-  request: NextRequest,
 ): Promise<void> {
   try {
     if (session?.user?.id) {
       await createChatOwnership({ v0ChatId: chatId, userId: session.user.id });
-    } else {
-      const clientIP = getClientIP(request);
-      await createAnonymousChatLog({ ipAddress: clientIP, v0ChatId: chatId });
     }
   } catch (error) {
-    console.error("Failed to create chat ownership/log:", error);
+    console.error("Failed to create chat ownership:", error);
   }
 }
 
@@ -110,7 +78,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const rateLimitResponse = await checkRateLimit(session, request);
+    const rateLimitResponse = await checkRateLimit(session);
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
@@ -142,7 +110,7 @@ export async function POST(request: NextRequest) {
     const chatDetail = chat as ChatDetail;
 
     if (!chatId && chatDetail.id) {
-      await recordChatOwnership(chatDetail.id, session, request);
+      await recordChatOwnership(chatDetail.id, session);
     }
 
     return formatChatResponse(chatDetail);

@@ -1,21 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/app/(auth)/auth";
-import { createAnonymousChatLog, createChatOwnership } from "@/lib/db/queries";
-
-function getClientIP(request: NextRequest): string {
-  const forwarded = request.headers.get("x-forwarded-for");
-  const realIP = request.headers.get("x-real-ip");
-
-  if (forwarded) {
-    return forwarded.split(",")[0].trim();
-  }
-
-  if (realIP) {
-    return realIP;
-  }
-
-  return "unknown";
-}
+import { createChatOwnership } from "@/lib/db/queries";
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,22 +14,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (session?.user?.id) {
-      await createChatOwnership({
-        v0ChatId: chatId,
-        userId: session.user.id,
-      });
-    } else {
-      const clientIP = getClientIP(request);
-      await createAnonymousChatLog({
-        ipAddress: clientIP,
-        v0ChatId: chatId,
-      });
+    // Require authentication
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 },
+      );
     }
+
+    await createChatOwnership({
+      v0ChatId: chatId,
+      userId: session.user.id,
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Failed to create chat ownership/log:", error);
+    console.error("Failed to create chat ownership:", error);
     return NextResponse.json(
       { error: "Failed to create ownership record" },
       { status: 500 },
