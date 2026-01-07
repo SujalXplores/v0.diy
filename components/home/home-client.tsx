@@ -355,6 +355,12 @@ export function HomeClient() {
       return;
     }
 
+    // Require authentication before sending messages
+    if (status !== "authenticated") {
+      router.push("/login?callbackUrl=/");
+      return;
+    }
+
     const userMessage = message.trim();
     setMessage("");
     setIsLoading(true);
