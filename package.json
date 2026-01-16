@@ -31,7 +31,7 @@
     ]
   },
   "dependencies": {
-    "@ai-sdk/react": "3.0.21",
+    "@ai-sdk/react": "3.0.40",
     "@radix-ui/react-avatar": "1.1.11",
     "@radix-ui/react-collapsible": "1.1.12",
     "@radix-ui/react-dialog": "1.1.15",
@@ -44,7 +44,7 @@
     "@radix-ui/react-use-controllable-state": "1.2.2",
     "@v0-sdk/react": "0.4.1",
     "@vercel/postgres": "0.10.0",
-    "ai": "6.0.21",
+    "ai": "6.0.38",
     "babel-plugin-react-compiler": "1.0.0",
     "bcrypt-ts": "8.0.0",
     "class-variance-authority": "0.7.1",
@@ -56,7 +56,7 @@
     "geist": "1.5.1",
     "lucide-react": "0.562.0",
     "nanoid": "5.1.6",
-    "next": "16.1.1",
+    "next": "16.1.2",
     "next-auth": "5.0.0-beta.30",
     "next-themes": "0.4.6",
     "postgres": "3.4.8",
@@ -75,8 +75,8 @@
   "devDependencies": {
     "@biomejs/biome": "2.3.11",
     "@tailwindcss/postcss": "4.1.18",
-    "@types/node": "25.0.3",
-    "@types/react": "19.2.7",
+    "@types/node": "25.0.9",
+    "@types/react": "19.2.8",
     "@types/react-dom": "19.2.3",
     "@types/react-syntax-highlighter": "15.5.13",
     "husky": "9.1.7",
