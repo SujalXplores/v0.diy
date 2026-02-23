@@ -1,11 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createClient } from "v0-sdk";
 import { auth } from "@/app/(auth)/auth";
 import { getChatOwnership } from "@/lib/db/queries";
-
-const v0 = createClient(
-  process.env.V0_API_URL ? { baseUrl: process.env.V0_API_URL } : {},
-);
+import { getUserV0Client, getV0ClientErrorResponse } from "@/lib/v0-client";
 
 export async function GET(
   _request: NextRequest,
@@ -34,10 +30,22 @@ export async function GET(
       }
     }
 
-    const chatDetails = await v0.chats.getById({ chatId });
+    const v0Client = await getUserV0Client(session).catch((error) => {
+      const response = getV0ClientErrorResponse(error);
+      if (response) {
+        throw response;
+      }
+      throw error;
+    });
+
+    const chatDetails = await v0Client.chats.getById({ chatId });
 
     return NextResponse.json(chatDetails);
   } catch (error) {
+    if (error instanceof Response) {
+      return error;
+    }
+
     console.error("Error fetching chat details:", error);
 
     return NextResponse.json(

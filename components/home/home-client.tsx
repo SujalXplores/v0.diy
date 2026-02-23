@@ -28,6 +28,8 @@ import { ChatMessages } from "@/components/chat/chat-messages";
 import { PreviewPanel } from "@/components/chat/preview-panel";
 import { AppHeader } from "@/components/shared/app-header";
 import { ResizableLayout } from "@/components/shared/resizable-layout";
+import { useV0ApiKeyModal } from "@/contexts/v0-api-key-modal-context";
+import { V0_API_KEY_REQUIRED_CODE } from "@/lib/v0-key";
 import type { ChatData } from "@/types/chat";
 
 // Component that uses useSearchParams - needs to be wrapped in Suspense
@@ -53,6 +55,7 @@ function SearchParamsHandler({ onReset }: { onReset: () => void }) {
 export function HomeClient() {
   const { status } = useSession();
   const router = useRouter();
+  const { openKeyModal, requireV0ApiKey } = useV0ApiKeyModal();
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showChatInterface, setShowChatInterface] = useState(false);
@@ -155,13 +158,19 @@ export function HomeClient() {
     setIsDragOver(false);
   };
 
-  const getErrorMessage = async (response: Response) => {
+  const getErrorPayload = async (response: Response) => {
     let errorMessage =
       "Sorry, there was an error processing your message. Please try again.";
+    let code: string | undefined;
+
     try {
       const errorData = await response.json();
+      code = errorData.code;
+
       if (errorData.message) {
         errorMessage = errorData.message;
+      } else if (errorData.error) {
+        errorMessage = errorData.error;
       } else if (response.status === 429) {
         errorMessage =
           "You have exceeded your maximum number of messages for the day. Please try again later.";
@@ -173,7 +182,38 @@ export function HomeClient() {
           "You have exceeded your maximum number of messages for the day. Please try again later.";
       }
     }
-    return errorMessage;
+    return { message: errorMessage, code };
+  };
+
+  const getStreamingBodyOrThrow = async (
+    response: Response,
+    onMissingKey: () => void,
+  ): Promise<ReadableStream<Uint8Array>> => {
+    if (!response.ok) {
+      const errorPayload = await getErrorPayload(response);
+
+      if (errorPayload.code === V0_API_KEY_REQUIRED_CODE) {
+        onMissingKey();
+        throw new Error("missing_v0_key_handled");
+      }
+
+      throw new Error(errorPayload.message);
+    }
+
+    if (!response.body) {
+      throw new Error("No response body for streaming");
+    }
+
+    return response.body;
+  };
+
+  const ensureAuthenticatedAndKey = async () => {
+    if (status !== "authenticated") {
+      router.push("/login?callbackUrl=/");
+      return false;
+    }
+
+    return requireV0ApiKey();
   };
 
   const handleSendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -182,10 +222,8 @@ export function HomeClient() {
       return;
     }
 
-    // Require authentication before sending messages
-    if (status !== "authenticated") {
-      // Message is already saved to sessionStorage via useEffect
-      router.push("/login?callbackUrl=/");
+    const canSend = await ensureAuthenticatedAndKey();
+    if (!canSend) {
       return;
     }
 
@@ -221,14 +259,14 @@ export function HomeClient() {
         }),
       });
 
-      if (!response.ok) {
-        const errorMessage = await getErrorMessage(response);
-        throw new Error(errorMessage);
-      }
-
-      if (!response.body) {
-        throw new Error("No response body for streaming");
-      }
+      const streamBody = await getStreamingBodyOrThrow(response, () => {
+        openKeyModal();
+        setIsLoading(false);
+        setShowChatInterface(false);
+        setChatHistory([]);
+        setMessage(userMessage);
+        setAttachments(currentAttachments);
+      });
 
       setIsLoading(false);
 
@@ -239,10 +277,17 @@ export function HomeClient() {
           type: "assistant",
           content: [],
           isStreaming: true,
-          stream: response.body,
+          stream: streamBody,
         },
       ]);
     } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === "missing_v0_key_handled"
+      ) {
+        return;
+      }
+
       console.error("Error creating chat:", error);
       setIsLoading(false);
 
@@ -355,9 +400,8 @@ export function HomeClient() {
       return;
     }
 
-    // Require authentication before sending messages
-    if (status !== "authenticated") {
-      router.push("/login?callbackUrl=/");
+    const canSend = await ensureAuthenticatedAndKey();
+    if (!canSend) {
       return;
     }
 
@@ -381,14 +425,11 @@ export function HomeClient() {
         }),
       });
 
-      if (!response.ok) {
-        const errorMessage = await getErrorMessage(response);
-        throw new Error(errorMessage);
-      }
-
-      if (!response.body) {
-        throw new Error("No response body for streaming");
-      }
+      const streamBody = await getStreamingBodyOrThrow(response, () => {
+        openKeyModal();
+        setIsLoading(false);
+        setMessage(userMessage);
+      });
 
       setIsLoading(false);
 
@@ -399,10 +440,17 @@ export function HomeClient() {
           type: "assistant",
           content: [],
           isStreaming: true,
-          stream: response.body,
+          stream: streamBody,
         },
       ]);
     } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === "missing_v0_key_handled"
+      ) {
+        return;
+      }
+
       console.error("Error:", error);
 
       // Use the specific error message if available, otherwise fall back to generic message

@@ -8,12 +8,6 @@ export interface MissingEnvVar {
 export function checkRequiredEnvVars(): MissingEnvVar[] {
   const requiredVars: MissingEnvVar[] = [
     {
-      name: "V0_API_KEY",
-      description: "Your v0 API key for generating apps",
-      example: "v0_sk_...",
-      required: true,
-    },
-    {
       name: "AUTH_SECRET",
       description: "Secret key for NextAuth.js authentication",
       example: "your-secret-key-here",
@@ -40,7 +34,5 @@ export function hasAllRequiredEnvVars(): boolean {
 }
 
 export const hasEnvVars = !!(
-  process.env.V0_API_KEY &&
-  process.env.AUTH_SECRET &&
-  process.env.POSTGRES_URL
+  process.env.AUTH_SECRET && process.env.POSTGRES_URL
 );

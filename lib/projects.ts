@@ -1,11 +1,8 @@
 import "server-only";
 
-import { createClient } from "v0-sdk";
+import { auth } from "@/app/(auth)/auth";
 import { getChatIdsByUserId } from "@/lib/db/queries";
-
-const v0 = createClient(
-  process.env.V0_API_URL ? { baseUrl: process.env.V0_API_URL } : {},
-);
+import { getUserV0Client } from "@/lib/v0-client";
 
 export interface Project {
   id: string;
@@ -40,7 +37,9 @@ export async function getProjectsByUserId(userId: string): Promise<Project[]> {
     return [];
   }
 
-  const allChats = await v0.chats.find();
+  const session = await auth();
+  const v0Client = await getUserV0Client(session);
+  const allChats = await v0Client.chats.find();
   const userChats =
     (allChats.data as V0Chat[])?.filter((chat) =>
       userChatIds.includes(chat.id),

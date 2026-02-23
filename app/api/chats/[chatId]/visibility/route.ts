@@ -1,11 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createClient } from "v0-sdk";
 import { auth } from "@/app/(auth)/auth";
 import { getChatOwnership } from "@/lib/db/queries";
-
-const v0 = createClient(
-  process.env.V0_API_URL ? { baseUrl: process.env.V0_API_URL } : {},
-);
+import { getUserV0Client, getV0ClientErrorResponse } from "@/lib/v0-client";
 
 export async function PATCH(
   request: NextRequest,
@@ -51,13 +47,25 @@ export async function PATCH(
       );
     }
 
-    const updatedChat = await v0.chats.update({
+    const v0Client = await getUserV0Client(session).catch((error) => {
+      const response = getV0ClientErrorResponse(error);
+      if (response) {
+        throw response;
+      }
+      throw error;
+    });
+
+    const updatedChat = await v0Client.chats.update({
       chatId,
       privacy,
     });
 
     return NextResponse.json(updatedChat);
   } catch (error) {
+    if (error instanceof Response) {
+      return error;
+    }
+
     console.error("Change Chat Visibility Error:", error);
 
     return NextResponse.json(

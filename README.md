@@ -49,7 +49,7 @@ v0.diy is a self-hosted, open-source alternative to [v0.app](https://v0.app) tha
 - Node.js 22.x or later
 - pnpm 9.0 or later
 - PostgreSQL database (local or hosted)
-- v0 API key from [v0.app](https://v0.app/chat/settings/keys)
+- v0 API key from [v0.app](https://v0.app/chat/settings/keys) for each end user (BYOK)
 
 ### Installation
 
@@ -79,12 +79,11 @@ POSTGRES_URL=postgresql://user:password@localhost:5432/v0_diy
 # Authentication (required - generate with: openssl rand -base64 32)
 AUTH_SECRET=your_auth_secret_here
 
-# v0 API (required)
-V0_API_KEY=your_v0_api_key_here
-
 # Optional: Custom v0 API URL
 V0_API_URL=
 ```
+
+After sign in, each user adds their own v0 API key from the account menu.
 
 > **Note:** In development mode, if `AUTH_SECRET` is not set, a default development secret will be used automatically.
 

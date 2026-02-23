@@ -3,6 +3,8 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import useSWR, { mutate } from "swr";
 import { useStreaming } from "@/contexts/streaming-context";
+import { useV0ApiKeyModal } from "@/contexts/v0-api-key-modal-context";
+import { V0_API_KEY_REQUIRED_CODE } from "@/lib/v0-key";
 import type { Chat, ChatData, ChatMessage } from "@/types/chat";
 
 /**
@@ -86,7 +88,9 @@ async function fetchAndCacheChatDetails(chatId: string): Promise<void> {
 /**
  * Parses error response and returns appropriate error message.
  */
-async function parseErrorResponse(response: Response): Promise<string> {
+async function parseErrorResponse(
+  response: Response,
+): Promise<{ message: string; code?: string }> {
   const defaultMessage =
     "Sorry, there was an error processing your message. Please try again.";
   const rateLimitMessage =
@@ -94,18 +98,23 @@ async function parseErrorResponse(response: Response): Promise<string> {
 
   try {
     const errorData = await response.json();
+    const code = errorData.code as string | undefined;
+
     if (errorData.message) {
-      return errorData.message;
+      return { message: errorData.message, code };
+    }
+    if (errorData.error) {
+      return { message: errorData.error, code };
     }
     if (response.status === 429) {
-      return rateLimitMessage;
+      return { message: rateLimitMessage, code };
     }
   } catch {
     if (response.status === 429) {
-      return rateLimitMessage;
+      return { message: rateLimitMessage };
     }
   }
-  return defaultMessage;
+  return { message: defaultMessage };
 }
 
 /**
@@ -123,10 +132,36 @@ async function parseErrorResponse(response: Response): Promise<string> {
 export function useChat(chatId: string) {
   const router = useRouter();
   const { handoff, clearHandoff } = useStreaming();
+  const { openKeyModal, requireV0ApiKey } = useV0ApiKeyModal();
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+
+  const getStreamingBodyOrThrow = useCallback(
+    async (response: Response, userMessage: string) => {
+      if (!response.ok) {
+        const errorPayload = await parseErrorResponse(response);
+
+        if (errorPayload.code === V0_API_KEY_REQUIRED_CODE) {
+          openKeyModal();
+          setMessage(userMessage);
+          setIsLoading(false);
+          setChatHistory((prev) => prev.slice(0, -1));
+          throw new Error("missing_v0_key_handled");
+        }
+
+        throw new Error(errorPayload.message);
+      }
+
+      if (!response.body) {
+        throw new Error("No response body for streaming");
+      }
+
+      return response.body;
+    },
+    [openKeyModal],
+  );
 
   // Use SWR to fetch chat data
   const { data: currentChat, isLoading: isLoadingChat } = useSWR<Chat>(
@@ -198,6 +233,11 @@ export function useChat(chatId: string) {
         return;
       }
 
+      const hasKey = await requireV0ApiKey();
+      if (!hasKey) {
+        return;
+      }
+
       const userMessage = message.trim();
       setMessage("");
       setIsLoading(true);
@@ -218,13 +258,7 @@ export function useChat(chatId: string) {
           }),
         });
 
-        if (!response.ok) {
-          throw new Error(await parseErrorResponse(response));
-        }
-
-        if (!response.body) {
-          throw new Error("No response body for streaming");
-        }
+        const streamBody = await getStreamingBodyOrThrow(response, userMessage);
 
         setIsStreaming(true);
         setChatHistory((prev) => [
@@ -233,10 +267,17 @@ export function useChat(chatId: string) {
             type: "assistant",
             content: [],
             isStreaming: true,
-            stream: response.body,
+            stream: streamBody,
           },
         ]);
       } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message === "missing_v0_key_handled"
+        ) {
+          return;
+        }
+
         console.error("Error:", error);
         const errorMessage =
           error instanceof Error
@@ -249,7 +290,7 @@ export function useChat(chatId: string) {
         setIsLoading(false);
       }
     },
-    [message, isLoading, chatId],
+    [message, isLoading, chatId, getStreamingBodyOrThrow, requireV0ApiKey],
   );
 
   const handleStreamingComplete = useCallback(

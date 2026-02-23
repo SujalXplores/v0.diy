@@ -1,14 +1,12 @@
-import { type NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import type { Session } from "next-auth";
-import { type ChatDetail, createClient } from "v0-sdk";
+import type { ChatDetail } from "v0-sdk";
 import { auth } from "@/app/(auth)/auth";
 import { createChatOwnership, getChatCountByUserId } from "@/lib/db/queries";
 import { userEntitlements } from "@/lib/entitlements";
 import { ChatSDKError } from "@/lib/errors";
-
-const v0 = createClient(
-  process.env.V0_API_URL ? { baseUrl: process.env.V0_API_URL } : {},
-);
+import { getUserV0Client, getV0ClientErrorResponse } from "@/lib/v0-client";
 
 const STREAMING_HEADERS = {
   "Content-Type": "text/event-stream",
@@ -66,6 +64,48 @@ function formatChatResponse(chatDetail: ChatDetail) {
   });
 }
 
+async function resolveV0Client(session: Session | null) {
+  return getUserV0Client(session).catch((error) => {
+    const response = getV0ClientErrorResponse(error);
+    if (response) {
+      throw response;
+    }
+    throw error;
+  });
+}
+
+async function executeChatRequest({
+  v0Client,
+  message,
+  chatId,
+  streaming,
+  attachments,
+}: {
+  v0Client: Awaited<ReturnType<typeof getUserV0Client>>;
+  message: string;
+  chatId?: string;
+  streaming?: boolean;
+  attachments?: Array<{ url: string }>;
+}) {
+  const attachmentOptions =
+    attachments && attachments.length > 0 ? { attachments } : {};
+
+  if (chatId) {
+    return v0Client.chats.sendMessage({
+      chatId,
+      message,
+      ...(streaming && { responseMode: "experimental_stream" }),
+      ...attachmentOptions,
+    });
+  }
+
+  return v0Client.chats.create({
+    message,
+    responseMode: streaming ? "experimental_stream" : "sync",
+    ...attachmentOptions,
+  });
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
@@ -83,25 +123,15 @@ export async function POST(request: NextRequest) {
       return rateLimitResponse;
     }
 
-    const attachmentOptions =
-      attachments && attachments.length > 0 ? { attachments } : {};
+    const v0Client = await resolveV0Client(session);
 
-    let chat: ChatDetail | ReadableStream<Uint8Array> | null = null;
-
-    if (chatId) {
-      chat = await v0.chats.sendMessage({
-        chatId,
-        message,
-        ...(streaming && { responseMode: "experimental_stream" }),
-        ...attachmentOptions,
-      });
-    } else {
-      chat = await v0.chats.create({
-        message,
-        responseMode: streaming ? "experimental_stream" : "sync",
-        ...attachmentOptions,
-      });
-    }
+    const chat = await executeChatRequest({
+      v0Client,
+      message,
+      chatId,
+      streaming,
+      attachments,
+    });
 
     if (chat instanceof ReadableStream) {
       return createStreamingResponse(chat);
@@ -115,6 +145,10 @@ export async function POST(request: NextRequest) {
 
     return formatChatResponse(chatDetail);
   } catch (error) {
+    if (error instanceof Response) {
+      return error;
+    }
+
     console.error("V0 API Error:", error);
     return NextResponse.json(
       {

@@ -1,6 +1,12 @@
 "use client";
 
-import { FolderKanban, LogOut, MessageSquare, User } from "lucide-react";
+import {
+  FolderKanban,
+  KeyRound,
+  LogOut,
+  MessageSquare,
+  User,
+} from "lucide-react";
 import Link from "next/link";
 import type { Session } from "next-auth";
 import { signOut } from "next-auth/react";
@@ -14,12 +20,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useV0ApiKeyModal } from "@/contexts/v0-api-key-modal-context";
 
 interface UserNavProps {
   session: Session | null;
 }
 
 export function UserNav({ session }: UserNavProps) {
+  const { openKeyModal } = useV0ApiKeyModal();
   const initials =
     session?.user?.email?.split("@")[0]?.slice(0, 2)?.toUpperCase() || "U";
 
@@ -63,6 +71,15 @@ export function UserNav({ session }: UserNavProps) {
                 <MessageSquare className="mr-2 h-4 w-4" />
                 <span>Chats</span>
               </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                openKeyModal();
+              }}
+              className="cursor-pointer"
+            >
+              <KeyRound className="mr-2 h-4 w-4" />
+              <span>API Key</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
           </>
