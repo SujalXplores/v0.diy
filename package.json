@@ -1,6 +1,7 @@
 {
   "name": "v0.diy",
   "version": "1.0.0",
+  "packageManager": "pnpm@10.29.3",
   "private": true,
   "author": {
     "name": "Sujal Shah",
