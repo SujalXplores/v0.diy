@@ -83,3 +83,23 @@ export interface StoredPromptData {
   message: string;
   attachments: StoredImageAttachment[];
 }
+
+/**
+ * V0 chat list types for chats page
+ */
+export interface V0Chat {
+  id: string;
+  object: "chat";
+  name?: string;
+  messages?: Array<{
+    role: "user" | "assistant";
+    content: string;
+  }>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ChatsResponse {
+  object: "list";
+  data: V0Chat[];
+}

@@ -15,7 +15,7 @@ import {
   PromptInputTools,
   savePromptToStorage,
 } from "@/components/ai-elements/prompt-input";
-import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
+import { SuggestionList } from "@/components/chat/suggestion-list";
 
 interface ChatInputProps {
   message: string;
@@ -88,7 +88,6 @@ export function ChatInput({
     if (message.trim() || attachments.length > 0) {
       savePromptToStorage(message, attachments);
     } else {
-      // Clear sessionStorage if both message and attachments are empty
       clearPromptFromStorage();
     }
   }, [message, attachments]);
@@ -111,14 +110,22 @@ export function ChatInput({
 
   const handleSubmit = useCallback(
     (e: React.FormEvent<HTMLFormElement>) => {
-      // Clear sessionStorage immediately upon submission
       clearPromptFromStorage();
-
       const attachmentUrls = attachments.map((att) => ({ url: att.dataUrl }));
       onSubmit(e, attachmentUrls.length > 0 ? attachmentUrls : undefined);
     },
     [onSubmit, attachments],
   );
+
+  const handleSuggestionSelect = (suggestion: string) => {
+    setMessage(suggestion);
+    setTimeout(() => {
+      const form = textareaRef?.current?.form;
+      if (form) {
+        form.requestSubmit();
+      }
+    }, 0);
+  };
 
   return (
     <div className="p-4 pt-0">
@@ -166,112 +173,7 @@ export function ChatInput({
       </div>
       {showSuggestions && (
         <div className="mx-auto mt-2 max-w-2xl">
-          <Suggestions>
-            <Suggestion
-              onClick={() => {
-                setMessage("Landing page");
-                // Submit after setting message
-                setTimeout(() => {
-                  const form = textareaRef?.current?.form;
-                  if (form) {
-                    form.requestSubmit();
-                  }
-                }, 0);
-              }}
-              suggestion="Landing page"
-            />
-            <Suggestion
-              onClick={() => {
-                setMessage("Todo app");
-                // Submit after setting message
-                setTimeout(() => {
-                  const form = textareaRef?.current?.form;
-                  if (form) {
-                    form.requestSubmit();
-                  }
-                }, 0);
-              }}
-              suggestion="Todo app"
-            />
-            <Suggestion
-              onClick={() => {
-                setMessage("Dashboard");
-                // Submit after setting message
-                setTimeout(() => {
-                  const form = textareaRef?.current?.form;
-                  if (form) {
-                    form.requestSubmit();
-                  }
-                }, 0);
-              }}
-              suggestion="Dashboard"
-            />
-            <Suggestion
-              onClick={() => {
-                setMessage("Blog");
-                // Submit after setting message
-                setTimeout(() => {
-                  const form = textareaRef?.current?.form;
-                  if (form) {
-                    form.requestSubmit();
-                  }
-                }, 0);
-              }}
-              suggestion="Blog"
-            />
-            <Suggestion
-              onClick={() => {
-                setMessage("E-commerce");
-                // Submit after setting message
-                setTimeout(() => {
-                  const form = textareaRef?.current?.form;
-                  if (form) {
-                    form.requestSubmit();
-                  }
-                }, 0);
-              }}
-              suggestion="E-commerce"
-            />
-            <Suggestion
-              onClick={() => {
-                setMessage("Portfolio");
-                // Submit after setting message
-                setTimeout(() => {
-                  const form = textareaRef?.current?.form;
-                  if (form) {
-                    form.requestSubmit();
-                  }
-                }, 0);
-              }}
-              suggestion="Portfolio"
-            />
-            <Suggestion
-              onClick={() => {
-                setMessage("Chat app");
-                // Submit after setting message
-                setTimeout(() => {
-                  const form = textareaRef?.current?.form;
-                  if (form) {
-                    form.requestSubmit();
-                  }
-                }, 0);
-              }}
-              suggestion="Chat app"
-            />
-            <Suggestion
-              onClick={() => {
-                setMessage("Calculator");
-                // Submit after setting message
-                setTimeout(() => {
-                  const form = textareaRef?.current?.form;
-                  if (form) {
-                    form.requestSubmit();
-                  }
-                }, 0);
-              }}
-              suggestion="Calculator"
-            />
-          </Suggestions>
+          <SuggestionList onSelect={handleSuggestionSelect} />
         </div>
       )}
     </div>

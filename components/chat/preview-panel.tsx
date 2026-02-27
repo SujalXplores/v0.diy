@@ -7,12 +7,7 @@ import {
   WebPreviewUrl,
 } from "@/components/ai-elements/web-preview";
 import { cn } from "@/lib/utils";
-
-interface Chat {
-  id: string;
-  demo?: string;
-  url?: string;
-}
+import type { Chat } from "@/types/chat";
 
 interface PreviewPanelProps {
   currentChat: Chat | null;
@@ -38,9 +33,8 @@ export function PreviewPanel({
     >
       <WebPreview
         defaultUrl={currentChat?.demo || ""}
-        onUrlChange={(url) => {
-          // Optional: Handle URL changes if needed
-          console.log("Preview URL changed:", url);
+        onUrlChange={() => {
+          // URL change handler - no action needed
         }}
       >
         <WebPreviewNavigation>

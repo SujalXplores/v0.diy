@@ -120,7 +120,7 @@ export const InlineCitationCarouselContent = (
   props: InlineCitationCarouselContentProps,
 ) => <CarouselContent {...props} />;
 
-export type InlineCitationCarouselItemProps = ComponentProps<"div">;
+export type InlineCitationCarouselItemProps = ComponentProps<"fieldset">;
 
 export const InlineCitationCarouselItem = ({
   className,

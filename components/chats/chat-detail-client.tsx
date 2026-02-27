@@ -12,7 +12,8 @@ import { PreviewPanel } from "@/components/chat/preview-panel";
 import { AppHeader } from "@/components/shared/app-header";
 import { ResizableLayout } from "@/components/shared/resizable-layout";
 import { useChat } from "@/hooks/use-chat";
-import { useEventListener } from "@/hooks/use-event-listner";
+import { useEventListener } from "@/hooks/use-event-listener";
+
 import { cn } from "@/lib/utils";
 
 export function ChatDetailClient() {

@@ -4,23 +4,7 @@ import { Plus } from "lucide-react";
 import Link from "next/link";
 import useSWR from "swr";
 import { AppHeader } from "@/components/shared/app-header";
-
-interface V0Chat {
-  id: string;
-  object: "chat";
-  name?: string;
-  messages?: Array<{
-    role: "user" | "assistant";
-    content: string;
-  }>;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface ChatsResponse {
-  object: "list";
-  data: V0Chat[];
-}
+import type { ChatsResponse, V0Chat } from "@/types/chat";
 
 export function ChatsClient() {
   const { data, error, isLoading } = useSWR<ChatsResponse>("/api/chats");

@@ -8,19 +8,7 @@ import { Loader } from "@/components/ai-elements/loader";
 import { Message } from "@/components/ai-elements/message";
 import { MessageRenderer } from "@/components/message-renderer";
 import { sharedComponents } from "@/components/shared-components";
-
-interface ChatMessage {
-  type: "user" | "assistant";
-  content: string | MessageBinaryFormat;
-  isStreaming?: boolean;
-  stream?: ReadableStream<Uint8Array> | null;
-}
-
-interface Chat {
-  id: string;
-  demo?: string;
-  url?: string;
-}
+import type { Chat, ChatMessage } from "@/types/chat";
 
 interface ChatMessagesProps {
   chatHistory: ChatMessage[];
