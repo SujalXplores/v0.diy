@@ -259,7 +259,7 @@ export function useHomeChatController() {
       const hasChatIdChanged = currentChatId !== chatId;
       if (hasChatIdChanged) {
         setCurrentChatId(chatId);
-        setCurrentChat((prev) => ({ ...(prev ?? {}), id: chatId }));
+        setCurrentChat({ id: chatId });
         window.history.pushState(null, "", `/chats/${chatId}`);
 
         try {
