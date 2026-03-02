@@ -50,6 +50,7 @@ export function useHomeChatController() {
     setCurrentChat(null);
     setMessage("");
     setAttachments([]);
+    setIsDragOver(false);
     setIsLoading(false);
     setIsFullscreen(false);
     setRefreshKey((prev) => prev + 1);
@@ -251,23 +252,25 @@ export function useHomeChatController() {
 
   const handleChatData = useCallback(
     async (chatData: ChatData) => {
-      if (chatData.id) {
-        if (!currentChatId || chatData.object === "chat") {
-          setCurrentChatId(chatData.id);
-          setCurrentChat({ id: chatData.id });
-          window.history.pushState(null, "", `/chats/${chatData.id}`);
-        }
+      if (!chatData.id) {
+        return;
+      }
 
-        if (!currentChatId) {
-          try {
-            await fetch("/api/chat/ownership", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ chatId: chatData.id }),
-            });
-          } catch (error) {
-            console.error("Failed to create chat ownership:", error);
-          }
+      const chatId = chatData.id;
+      const hasChatIdChanged = currentChatId !== chatId;
+      if (hasChatIdChanged) {
+        setCurrentChatId(chatId);
+        setCurrentChat((prev) => ({ ...(prev ?? {}), id: chatId }));
+        window.history.pushState(null, "", `/chats/${chatId}`);
+
+        try {
+          await fetch("/api/chat/ownership", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ chatId }),
+          });
+        } catch (error) {
+          console.error("Failed to create chat ownership:", error);
         }
       }
     },
