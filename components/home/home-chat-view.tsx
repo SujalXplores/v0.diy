@@ -1,7 +1,6 @@
 "use client";
 
 import type { MessageBinaryFormat } from "@v0-sdk/react";
-import { StreamingMessage } from "@v0-sdk/react";
 import { ChatInput } from "@/components/chat/chat-input";
 import { ChatMessages } from "@/components/chat/chat-messages";
 import { PreviewPanel } from "@/components/chat/preview-panel";
@@ -79,26 +78,6 @@ export function HomeChatView({
           />
         }
       />
-
-      {chatHistory.some((msg) => msg.isStreaming && msg.stream) && (
-        <div className="hidden">
-          {chatHistory.map((msg, index) =>
-            msg.isStreaming && msg.stream ? (
-              <StreamingMessage
-                key={`streaming-${msg.type}-${index}`}
-                stream={msg.stream}
-                messageId={`msg-${index}`}
-                onComplete={handleStreamingComplete}
-                onChatData={handleChatData}
-                onError={(error) => {
-                  console.error("Streaming error:", error);
-                  setIsLoading(false);
-                }}
-              />
-            ) : null,
-          )}
-        </div>
-      )}
     </>
   );
 }

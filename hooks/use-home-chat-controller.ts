@@ -274,6 +274,35 @@ export function useHomeChatController() {
     [currentChatId],
   );
 
+  useEffect(() => {
+    if (!currentChatId) {
+      return;
+    }
+
+    fetch(`/api/chats/${currentChatId}`)
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        }
+        console.warn("Failed to fetch chat details:", response.status);
+        return null;
+      })
+      .then((chatDetails) => {
+        if (chatDetails) {
+          const demoUrl =
+            chatDetails?.latestVersion?.demoUrl || chatDetails?.demo;
+          if (demoUrl) {
+            setCurrentChat((prev) =>
+              prev ? { ...prev, demo: demoUrl } : prev,
+            );
+          }
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching demo URL:", error);
+      });
+  }, [currentChatId]);
+
   const handleStreamingComplete = useCallback(
     async (finalContent: string | MessageBinaryFormat) => {
       setIsLoading(false);
@@ -290,35 +319,6 @@ export function useHomeChatController() {
           };
         }
         return updated;
-      });
-
-      setCurrentChat((prevCurrentChat) => {
-        if (prevCurrentChat?.id) {
-          fetch(`/api/chats/${prevCurrentChat.id}`)
-            .then((response) => {
-              if (response.ok) {
-                return response.json();
-              }
-              console.warn("Failed to fetch chat details:", response.status);
-              return null;
-            })
-            .then((chatDetails) => {
-              if (chatDetails) {
-                const demoUrl =
-                  chatDetails?.latestVersion?.demoUrl || chatDetails?.demo;
-                if (demoUrl) {
-                  setCurrentChat((prev) =>
-                    prev ? { ...prev, demo: demoUrl } : null,
-                  );
-                }
-              }
-            })
-            .catch((error) => {
-              console.error("Error fetching demo URL:", error);
-            });
-        }
-
-        return prevCurrentChat;
       });
     },
     [],

@@ -13,7 +13,11 @@ export function SearchParamsHandler({ onReset }: { onReset: () => void }) {
 
       const newUrl = new URL(window.location.href);
       newUrl.searchParams.delete("reset");
-      window.history.replaceState({}, "", newUrl.pathname);
+      window.history.replaceState(
+        {},
+        "",
+        `${newUrl.pathname}${newUrl.search}${newUrl.hash}`,
+      );
     }
   }, [searchParams, onReset]);
 
