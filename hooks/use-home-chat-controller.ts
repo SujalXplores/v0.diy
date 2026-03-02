@@ -205,7 +205,6 @@ export function useHomeChatController() {
           setAttachments(currentAttachments);
         });
 
-        setIsLoading(false);
         setChatHistory((prev) => [
           ...prev,
           {
@@ -282,7 +281,10 @@ export function useHomeChatController() {
       return;
     }
 
-    fetch(`/api/chats/${currentChatId}`)
+    const controller = new AbortController();
+    const chatIdAtRequest = currentChatId;
+
+    fetch(`/api/chats/${chatIdAtRequest}`, { signal: controller.signal })
       .then((response) => {
         if (response.ok) {
           return response.json();
@@ -296,14 +298,23 @@ export function useHomeChatController() {
             chatDetails?.latestVersion?.demoUrl || chatDetails?.demo;
           if (demoUrl) {
             setCurrentChat((prev) =>
-              prev ? { ...prev, demo: demoUrl } : prev,
+              prev && prev.id === chatIdAtRequest
+                ? { ...prev, demo: demoUrl }
+                : prev,
             );
           }
         }
       })
       .catch((error) => {
+        if (error instanceof Error && error.name === "AbortError") {
+          return;
+        }
         console.error("Error fetching demo URL:", error);
       });
+
+    return () => {
+      controller.abort();
+    };
   }, [currentChatId]);
 
   const handleStreamingComplete = useCallback(
@@ -364,7 +375,6 @@ export function useHomeChatController() {
           setMessage(userMessage);
         });
 
-        setIsLoading(false);
         setChatHistory((prev) => [
           ...prev,
           {
