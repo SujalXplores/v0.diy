@@ -22,6 +22,20 @@
       "when": 1757370487319,
       "tag": "0002_many_ezekiel",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1757370487320,
+      "tag": "0003_remove_guest_users",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1757370487321,
+      "tag": "0004_user_v0_api_keys",
+      "breakpoints": true
     }
   ]
 }

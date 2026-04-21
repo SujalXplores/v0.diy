@@ -7,8 +7,20 @@ import {
   setUserV0ApiKey,
 } from "@/lib/db/queries";
 
-function validateV0ApiKey(key: string): boolean {
-  return key.startsWith("v0_") && key.length >= 20;
+async function validateV0ApiKey(key: string): Promise<boolean> {
+  const baseUrl = process.env.V0_API_URL || "https://api.v0.dev/v1";
+
+  try {
+    const response = await fetch(`${baseUrl}/chats?limit=1`, {
+      headers: {
+        Authorization: `Bearer ${key}`,
+        "User-Agent": "v0-sdk/0.1.0",
+      },
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
 }
 
 function isByokMigrationError(error: unknown): boolean {
@@ -77,7 +89,7 @@ export async function PUT(request: Request) {
     const body = await request.json().catch(() => null);
     const apiKey = body?.apiKey;
 
-    if (typeof apiKey !== "string" || !validateV0ApiKey(apiKey)) {
+    if (typeof apiKey !== "string" || !(await validateV0ApiKey(apiKey))) {
       return NextResponse.json(
         { error: "Invalid v0 API key" },
         { status: 400 },
