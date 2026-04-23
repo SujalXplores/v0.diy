@@ -1,734 +1,80 @@
 "use client";
 
-import type { MessageBinaryFormat } from "@v0-sdk/react";
-import { StreamingMessage } from "@v0-sdk/react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { Suspense, useEffect, useRef, useState } from "react";
-import {
-  clearPromptFromStorage,
-  createImageAttachment,
-  createImageAttachmentFromStored,
-  type ImageAttachment,
-  loadPromptFromStorage,
-  PromptInput,
-  PromptInputImageButton,
-  PromptInputImagePreview,
-  PromptInputMicButton,
-  PromptInputSubmit,
-  PromptInputTextarea,
-  PromptInputToolbar,
-  PromptInputTools,
-  savePromptToStorage,
-} from "@/components/ai-elements/prompt-input";
-import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
-import { ChatInput } from "@/components/chat/chat-input";
-import { ChatMessages } from "@/components/chat/chat-messages";
-import { PreviewPanel } from "@/components/chat/preview-panel";
+import { Suspense } from "react";
 import { AppHeader } from "@/components/shared/app-header";
-import { ResizableLayout } from "@/components/shared/resizable-layout";
-import { useV0ApiKeyModal } from "@/contexts/v0-api-key-modal-context";
-import { V0_API_KEY_REQUIRED_CODE } from "@/lib/v0-key";
-import type { ChatData } from "@/types/chat";
-
-// Component that uses useSearchParams - needs to be wrapped in Suspense
-function SearchParamsHandler({ onReset }: { onReset: () => void }) {
-  const searchParams = useSearchParams();
-
-  // Reset UI when reset parameter is present
-  useEffect(() => {
-    const reset = searchParams.get("reset");
-    if (reset === "true") {
-      onReset();
-
-      // Remove the reset parameter from URL without triggering navigation
-      const newUrl = new URL(window.location.href);
-      newUrl.searchParams.delete("reset");
-      window.history.replaceState({}, "", newUrl.pathname);
-    }
-  }, [searchParams, onReset]);
-
-  return null;
-}
+import { useHomeChatController } from "@/hooks/use-home-chat-controller";
+import { HomeChatView } from "./home-chat-view";
+import { HomeLandingView } from "./home-landing-view";
+import { SearchParamsHandler } from "./search-params-handler";
 
 export function HomeClient() {
-  const { status } = useSession();
-  const router = useRouter();
-  const { openKeyModal, requireV0ApiKey } = useV0ApiKeyModal();
-  const [message, setMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [showChatInterface, setShowChatInterface] = useState(false);
-  const [attachments, setAttachments] = useState<ImageAttachment[]>([]);
-  const [isDragOver, setIsDragOver] = useState(false);
-  const [chatHistory, setChatHistory] = useState<
-    Array<{
-      type: "user" | "assistant";
-      content: string | MessageBinaryFormat;
-      isStreaming?: boolean;
-      stream?: ReadableStream<Uint8Array> | null;
-    }>
-  >([]);
-  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
-  const [currentChat, setCurrentChat] = useState<{
-    id: string;
-    demo?: string;
-  } | null>(null);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  const handleReset = () => {
-    // Reset all chat-related state
-    setShowChatInterface(false);
-    setChatHistory([]);
-    setCurrentChatId(null);
-    setCurrentChat(null);
-    setMessage("");
-    setAttachments([]);
-    setIsLoading(false);
-    setIsFullscreen(false);
-    setRefreshKey((prev) => prev + 1);
-
-    // Clear any stored data
-    clearPromptFromStorage();
-
-    // Focus textarea after reset
-    setTimeout(() => {
-      if (textareaRef.current) {
-        textareaRef.current.focus();
-      }
-    }, 0);
-  };
-
-  // Auto-focus the textarea on page load and restore from sessionStorage
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.focus();
-    }
-
-    // Restore prompt data from sessionStorage
-    const storedData = loadPromptFromStorage();
-    if (storedData) {
-      setMessage(storedData.message);
-      if (storedData.attachments.length > 0) {
-        const restoredAttachments = storedData.attachments.map(
-          createImageAttachmentFromStored,
-        );
-        setAttachments(restoredAttachments);
-      }
-    }
-  }, []);
-
-  // Save prompt data to sessionStorage whenever message or attachments change
-  useEffect(() => {
-    if (message.trim() || attachments.length > 0) {
-      savePromptToStorage(message, attachments);
-    } else {
-      // Clear sessionStorage if both message and attachments are empty
-      clearPromptFromStorage();
-    }
-  }, [message, attachments]);
-
-  // Image attachment handlers
-  const handleImageFiles = async (files: File[]) => {
-    try {
-      const newAttachments = await Promise.all(
-        files.map((file) => createImageAttachment(file)),
-      );
-      setAttachments((prev) => [...prev, ...newAttachments]);
-    } catch (error) {
-      console.error("Error processing image files:", error);
-    }
-  };
-
-  const handleRemoveAttachment = (id: string) => {
-    setAttachments((prev) => prev.filter((att) => att.id !== id));
-  };
-
-  const handleDragOver = () => {
-    setIsDragOver(true);
-  };
-
-  const handleDragLeave = () => {
-    setIsDragOver(false);
-  };
-
-  const handleDrop = () => {
-    setIsDragOver(false);
-  };
-
-  const getErrorPayload = async (response: Response) => {
-    let errorMessage =
-      "Sorry, there was an error processing your message. Please try again.";
-    let code: string | undefined;
-
-    try {
-      const errorData = await response.json();
-      code = errorData.code;
-
-      if (errorData.message) {
-        errorMessage = errorData.message;
-      } else if (errorData.error) {
-        errorMessage = errorData.error;
-      } else if (response.status === 429) {
-        errorMessage =
-          "You have exceeded your maximum number of messages for the day. Please try again later.";
-      }
-    } catch (parseError) {
-      console.error("Error parsing error response:", parseError);
-      if (response.status === 429) {
-        errorMessage =
-          "You have exceeded your maximum number of messages for the day. Please try again later.";
-      }
-    }
-    return { message: errorMessage, code };
-  };
-
-  const getStreamingBodyOrThrow = async (
-    response: Response,
-    onMissingKey: () => void,
-  ): Promise<ReadableStream<Uint8Array>> => {
-    if (!response.ok) {
-      const errorPayload = await getErrorPayload(response);
-
-      if (errorPayload.code === V0_API_KEY_REQUIRED_CODE) {
-        onMissingKey();
-        throw new Error("missing_v0_key_handled");
-      }
-
-      throw new Error(errorPayload.message);
-    }
-
-    if (!response.body) {
-      throw new Error("No response body for streaming");
-    }
-
-    return response.body;
-  };
-
-  const ensureAuthenticatedAndKey = async () => {
-    if (status !== "authenticated") {
-      router.push("/login?callbackUrl=/");
-      return false;
-    }
-
-    return requireV0ApiKey();
-  };
-
-  const handleSendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!message.trim() || isLoading) {
-      return;
-    }
-
-    const canSend = await ensureAuthenticatedAndKey();
-    if (!canSend) {
-      return;
-    }
-
-    const userMessage = message.trim();
-    const currentAttachments = [...attachments];
-
-    // Clear sessionStorage immediately upon submission
-    clearPromptFromStorage();
-
-    setMessage("");
-    setAttachments([]);
-
-    // Immediately show chat interface and add user message
-    setShowChatInterface(true);
-    setChatHistory([
-      {
-        type: "user",
-        content: userMessage,
-      },
-    ]);
-    setIsLoading(true);
-
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: userMessage,
-          streaming: true,
-          attachments: currentAttachments.map((att) => ({ url: att.dataUrl })),
-        }),
-      });
-
-      const streamBody = await getStreamingBodyOrThrow(response, () => {
-        openKeyModal();
-        setIsLoading(false);
-        setShowChatInterface(false);
-        setChatHistory([]);
-        setMessage(userMessage);
-        setAttachments(currentAttachments);
-      });
-
-      setIsLoading(false);
-
-      // Add streaming assistant response
-      setChatHistory((prev) => [
-        ...prev,
-        {
-          type: "assistant",
-          content: [],
-          isStreaming: true,
-          stream: streamBody,
-        },
-      ]);
-    } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message === "missing_v0_key_handled"
-      ) {
-        return;
-      }
-
-      console.error("Error creating chat:", error);
-      setIsLoading(false);
-
-      // Use the specific error message if available, otherwise fall back to generic message
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Sorry, there was an error processing your message. Please try again.";
-
-      setChatHistory((prev) => [
-        ...prev,
-        {
-          type: "assistant",
-          content: errorMessage,
-        },
-      ]);
-    }
-  };
-
-  const handleChatData = async (chatData: ChatData) => {
-    if (chatData.id) {
-      // Only set currentChat if it's not already set or if this is the main chat object
-      if (!currentChatId || chatData.object === "chat") {
-        setCurrentChatId(chatData.id);
-        setCurrentChat({ id: chatData.id });
-
-        // Update URL without triggering Next.js routing
-        window.history.pushState(null, "", `/chats/${chatData.id}`);
-      }
-
-      // Create ownership record for new chat (only if this is a new chat)
-      if (!currentChatId) {
-        try {
-          await fetch("/api/chat/ownership", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              chatId: chatData.id,
-            }),
-          });
-        } catch (error) {
-          console.error("Failed to create chat ownership:", error);
-          // Don't fail the UI if ownership creation fails
-        }
-      }
-    }
-  };
-
-  const handleStreamingComplete = async (
-    finalContent: string | MessageBinaryFormat,
-  ) => {
-    setIsLoading(false);
-
-    // Update chat history with final content
-    setChatHistory((prev) => {
-      const updated = [...prev];
-      const lastIndex = updated.length - 1;
-      if (lastIndex >= 0 && updated[lastIndex].isStreaming) {
-        updated[lastIndex] = {
-          ...updated[lastIndex],
-          content: finalContent,
-          isStreaming: false,
-          stream: undefined,
-        };
-      }
-      return updated;
-    });
-
-    // Fetch demo URL after streaming completes
-    // Use the current state by accessing it in the state updater
-    setCurrentChat((prevCurrentChat) => {
-      if (prevCurrentChat?.id) {
-        // Fetch demo URL asynchronously
-        fetch(`/api/chats/${prevCurrentChat.id}`)
-          .then((response) => {
-            if (response.ok) {
-              return response.json();
-            }
-            console.warn("Failed to fetch chat details:", response.status);
-            return null;
-          })
-          .then((chatDetails) => {
-            if (chatDetails) {
-              const demoUrl =
-                chatDetails?.latestVersion?.demoUrl || chatDetails?.demo;
-
-              // Update the current chat with demo URL
-              if (demoUrl) {
-                setCurrentChat((prev) =>
-                  prev ? { ...prev, demo: demoUrl } : null,
-                );
-              }
-            }
-          })
-          .catch((error) => {
-            console.error("Error fetching demo URL:", error);
-          });
-      }
-
-      // Return the current state unchanged for now
-      return prevCurrentChat;
-    });
-  };
-
-  const handleChatSendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!message.trim() || isLoading || !currentChatId) {
-      return;
-    }
-
-    const canSend = await ensureAuthenticatedAndKey();
-    if (!canSend) {
-      return;
-    }
-
-    const userMessage = message.trim();
-    setMessage("");
-    setIsLoading(true);
-
-    // Add user message to chat history
-    setChatHistory((prev) => [...prev, { type: "user", content: userMessage }]);
-
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: userMessage,
-          chatId: currentChatId,
-          streaming: true,
-        }),
-      });
-
-      const streamBody = await getStreamingBodyOrThrow(response, () => {
-        openKeyModal();
-        setIsLoading(false);
-        setMessage(userMessage);
-      });
-
-      setIsLoading(false);
-
-      // Add streaming response
-      setChatHistory((prev) => [
-        ...prev,
-        {
-          type: "assistant",
-          content: [],
-          isStreaming: true,
-          stream: streamBody,
-        },
-      ]);
-    } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message === "missing_v0_key_handled"
-      ) {
-        return;
-      }
-
-      console.error("Error:", error);
-
-      // Use the specific error message if available, otherwise fall back to generic message
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Sorry, there was an error processing your message. Please try again.";
-
-      setChatHistory((prev) => [
-        ...prev,
-        {
-          type: "assistant",
-          content: errorMessage,
-        },
-      ]);
-      setIsLoading(false);
-    }
-  };
-
-  if (showChatInterface) {
-    return (
-      <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-black">
-        {/* Handle search params with Suspense boundary */}
-        <Suspense fallback={null}>
-          <SearchParamsHandler onReset={handleReset} />
-        </Suspense>
-
-        <AppHeader />
-
-        <ResizableLayout
-          className="h-[calc(100vh-64px)]"
-          leftPanel={
-            <>
-              <ChatMessages
-                chatHistory={chatHistory}
-                isLoading={isLoading}
-                onStreamingComplete={handleStreamingComplete}
-                onChatData={handleChatData}
-                onStreamingStarted={() => setIsLoading(false)}
-              />
-
-              <ChatInput
-                message={message}
-                setMessage={setMessage}
-                onSubmit={handleChatSendMessage}
-                isLoading={isLoading}
-                showSuggestions={false}
-              />
-            </>
-          }
-          rightPanel={
-            <PreviewPanel
-              currentChat={currentChat}
-              isFullscreen={isFullscreen}
-              setIsFullscreen={setIsFullscreen}
-              refreshKey={refreshKey}
-              setRefreshKey={setRefreshKey}
-            />
-          }
-        />
-
-        {/* Hidden streaming component for initial response */}
-        {chatHistory.some((msg) => msg.isStreaming && msg.stream) && (
-          <div className="hidden">
-            {chatHistory.map((msg, index) =>
-              msg.isStreaming && msg.stream ? (
-                <StreamingMessage
-                  key={`streaming-${msg.type}-${index}`}
-                  stream={msg.stream}
-                  messageId={`msg-${index}`}
-                  onComplete={handleStreamingComplete}
-                  onChatData={handleChatData}
-                  onError={(error) => {
-                    console.error("Streaming error:", error);
-                    setIsLoading(false);
-                  }}
-                />
-              ) : null,
-            )}
-          </div>
-        )}
-      </div>
-    );
-  }
+  const {
+    message,
+    setMessage,
+    isLoading,
+    setIsLoading,
+    showChatInterface,
+    attachments,
+    isDragOver,
+    chatHistory,
+    currentChat,
+    isFullscreen,
+    setIsFullscreen,
+    refreshKey,
+    setRefreshKey,
+    textareaRef,
+    handleReset,
+    handleImageFiles,
+    handleRemoveAttachment,
+    handleDragOver,
+    handleDragLeave,
+    handleDrop,
+    handleSendMessage,
+    handleChatSendMessage,
+    handleChatData,
+    handleStreamingComplete,
+  } = useHomeChatController();
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-black">
-      {/* Handle search params with Suspense boundary */}
       <Suspense fallback={null}>
         <SearchParamsHandler onReset={handleReset} />
       </Suspense>
 
       <AppHeader />
 
-      {/* Main Content */}
-      <div className="flex flex-1 items-center justify-center px-4 sm:px-6 lg:px-8">
-        <div className="w-full max-w-4xl">
-          <div className="mb-12 text-center">
-            <h2 className="mb-4 font-bold text-4xl text-gray-900 dark:text-white">
-              What can we build together?
-            </h2>
-          </div>
-
-          {/* Prompt Input */}
-          <div className="mx-auto max-w-2xl">
-            <PromptInput
-              onSubmit={handleSendMessage}
-              className="relative w-full"
-              onImageDrop={handleImageFiles}
-              isDragOver={isDragOver}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-            >
-              <PromptInputImagePreview
-                attachments={attachments}
-                onRemove={handleRemoveAttachment}
-              />
-              <PromptInputTextarea
-                ref={textareaRef}
-                onChange={(e) => setMessage(e.target.value)}
-                value={message}
-                placeholder="Describe what you want to build..."
-                className="min-h-20 text-base"
-                disabled={isLoading}
-              />
-              <PromptInputToolbar>
-                <PromptInputTools>
-                  <PromptInputImageButton
-                    onImageSelect={handleImageFiles}
-                    disabled={isLoading}
-                  />
-                </PromptInputTools>
-                <PromptInputTools>
-                  <PromptInputMicButton
-                    onTranscript={(transcript) => {
-                      setMessage(
-                        (prev) => prev + (prev ? " " : "") + transcript,
-                      );
-                    }}
-                    onError={(error) => {
-                      console.error("Speech recognition error:", error);
-                    }}
-                    disabled={isLoading}
-                  />
-                  <PromptInputSubmit
-                    disabled={!message.trim() || isLoading}
-                    status={isLoading ? "streaming" : "ready"}
-                  />
-                </PromptInputTools>
-              </PromptInputToolbar>
-            </PromptInput>
-          </div>
-
-          {/* Suggestions */}
-          <div className="mx-auto mt-4 max-w-2xl">
-            <Suggestions>
-              <Suggestion
-                onClick={() => {
-                  setMessage("Landing page");
-                  // Submit after setting message
-                  setTimeout(() => {
-                    const form = textareaRef.current?.form;
-                    if (form) {
-                      form.requestSubmit();
-                    }
-                  }, 0);
-                }}
-                suggestion="Landing page"
-              />
-              <Suggestion
-                onClick={() => {
-                  setMessage("Todo app");
-                  // Submit after setting message
-                  setTimeout(() => {
-                    const form = textareaRef.current?.form;
-                    if (form) {
-                      form.requestSubmit();
-                    }
-                  }, 0);
-                }}
-                suggestion="Todo app"
-              />
-              <Suggestion
-                onClick={() => {
-                  setMessage("Dashboard");
-                  // Submit after setting message
-                  setTimeout(() => {
-                    const form = textareaRef.current?.form;
-                    if (form) {
-                      form.requestSubmit();
-                    }
-                  }, 0);
-                }}
-                suggestion="Dashboard"
-              />
-              <Suggestion
-                onClick={() => {
-                  setMessage("Blog");
-                  // Submit after setting message
-                  setTimeout(() => {
-                    const form = textareaRef.current?.form;
-                    if (form) {
-                      form.requestSubmit();
-                    }
-                  }, 0);
-                }}
-                suggestion="Blog"
-              />
-              <Suggestion
-                onClick={() => {
-                  setMessage("E-commerce");
-                  // Submit after setting message
-                  setTimeout(() => {
-                    const form = textareaRef.current?.form;
-                    if (form) {
-                      form.requestSubmit();
-                    }
-                  }, 0);
-                }}
-                suggestion="E-commerce"
-              />
-              <Suggestion
-                onClick={() => {
-                  setMessage("Portfolio");
-                  // Submit after setting message
-                  setTimeout(() => {
-                    const form = textareaRef.current?.form;
-                    if (form) {
-                      form.requestSubmit();
-                    }
-                  }, 0);
-                }}
-                suggestion="Portfolio"
-              />
-              <Suggestion
-                onClick={() => {
-                  setMessage("Chat app");
-                  // Submit after setting message
-                  setTimeout(() => {
-                    const form = textareaRef.current?.form;
-                    if (form) {
-                      form.requestSubmit();
-                    }
-                  }, 0);
-                }}
-                suggestion="Chat app"
-              />
-              <Suggestion
-                onClick={() => {
-                  setMessage("Calculator");
-                  // Submit after setting message
-                  setTimeout(() => {
-                    const form = textareaRef.current?.form;
-                    if (form) {
-                      form.requestSubmit();
-                    }
-                  }, 0);
-                }}
-                suggestion="Calculator"
-              />
-            </Suggestions>
-          </div>
-
-          {/* Footer */}
-          <div className="mt-16 text-center text-muted-foreground text-sm">
-            <p>
-              Powered by{" "}
-              <Link
-                href="https://v0-sdk.dev"
-                className="text-foreground hover:underline"
-              >
-                v0 SDK
-              </Link>
-            </p>
-          </div>
-        </div>
-      </div>
+      {showChatInterface ? (
+        <HomeChatView
+          chatHistory={chatHistory}
+          isLoading={isLoading}
+          setIsLoading={setIsLoading}
+          message={message}
+          setMessage={setMessage}
+          handleChatSendMessage={handleChatSendMessage}
+          handleStreamingComplete={handleStreamingComplete}
+          handleChatData={handleChatData}
+          currentChat={currentChat}
+          isFullscreen={isFullscreen}
+          setIsFullscreen={setIsFullscreen}
+          refreshKey={refreshKey}
+          setRefreshKey={setRefreshKey}
+        />
+      ) : (
+        <HomeLandingView
+          message={message}
+          setMessage={setMessage}
+          isLoading={isLoading}
+          attachments={attachments}
+          isDragOver={isDragOver}
+          textareaRef={textareaRef}
+          onSubmit={handleSendMessage}
+          onImageFiles={handleImageFiles}
+          onRemoveAttachment={handleRemoveAttachment}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        />
+      )}
     </div>
   );
 }
