@@ -1,0 +1,16 @@
+# Supply-chain hardening: only install releases that have been public for
+# 3 days (matches the Renovate automerge window) and refuse packages whose
+# provenance/signature trust level drops between versions.
+minimumReleaseAge: 4320
+trustPolicy: no-downgrade
+
+# esbuild ships prebuilt binaries via optional dependencies, so its
+# postinstall script is not needed.
+ignoredBuiltDependencies:
+  - esbuild
+
+# Versions already in use before trustPolicy was enabled that were published
+# without provenance even though earlier releases had it.
+trustPolicyExclude:
+  - next-auth@5.0.0-beta.30
+  - semver@6.3.1

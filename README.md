@@ -114,64 +114,70 @@ The application will be available at `http://localhost:3000`.
 | `pnpm lint:fix` | Run Biome linter with auto-fix |
 | `pnpm format` | Format code with Biome |
 | `pnpm check` | Run Biome check (lint + format) |
-| `pnpm typecheck` | Run TypeScript type checking |
+| `pnpm typecheck` | Generate Next.js route types and run TypeScript |
+| `pnpm lint:react` | Run [React Doctor](https://react.doctor) diagnostics |
+| `pnpm validate` | Run Biome, TypeScript and React Doctor (what CI runs) |
 
 ## Tech Stack
 
 ### Frontend
-- **React 19.2.3** — Latest React with concurrent rendering and React Compiler
-- **Next.js 16.1.1** — Full-stack React framework with App Router & Turbopack
-- **TypeScript 5.9.3** — Static type checking
-- **Tailwind CSS 4.1.18** — Utility-first CSS framework
+- **React 19.3** — Latest React with concurrent rendering and React Compiler
+- **Next.js 16.3** — Full-stack React framework with App Router & Turbopack
+- **TypeScript 7** — Strict static type checking
+- **Tailwind CSS 4.3** — Utility-first CSS framework
 - **Radix UI** — Accessible UI primitives
 - **Geist Font** — Typography by Vercel
 
 ### Backend & Data
 - **NextAuth.js 5 (Beta)** — Authentication with Credentials provider
 - **PostgreSQL** — Relational database
-- **Drizzle ORM 0.45.1** — Type-safe database operations
+- **Drizzle ORM 0.45** — Type-safe database operations
 - **Vercel Postgres** — Cloud-hosted PostgreSQL support
 
 ### AI Integration
-- **v0 SDK 0.15.3** — Official v0.app API client
-- **AI SDK 6.0.11** — Streaming AI response handling
-- **@v0-sdk/react 0.4.1** — React components for AI interactions
+- **v0 SDK 0.16** — Official v0.app API client
+- **@v0-sdk/react 0.5** — React components for streaming v0 messages
 
 ### Developer Experience
-- **Biome 2.3.11** — Fast linter and formatter
+- **Biome 2.5** — Fast linter and formatter
+- **React Doctor** — React-specific diagnostics (run in CI)
 - **Husky** — Git hooks for code quality
 - **lint-staged** — Run linters on staged files
 
 ## Project Structure
 
+Routes stay thin; each feature owns its components, hooks and logic, and
+everything that must never reach the browser lives in `src/server`.
+
 ```
-v0.diy/
-├── app/                      # Next.js App Router
-│   ├── (auth)/              # Authentication routes & config
-│   │   ├── login/           # Login page
-│   │   └── register/        # Registration page
-│   ├── api/                 # API routes
-│   │   ├── auth/            # NextAuth endpoints
-│   │   ├── chat/            # Chat API (create, fork, delete)
-│   │   └── chats/           # Chat list & detail endpoints
-│   ├── chats/               # Chat pages
-│   └── projects/            # Projects dashboard
+src/
+├── app/                     # Next.js App Router: pages, layouts, API routes
+│   ├── (auth)/              # Login & register pages
+│   ├── api/                 # Route handlers (chat, chats, auth, user key)
+│   ├── chats/ projects/     # Page entry points
+│   └── providers.tsx        # Client-side context shared by every page
 ├── components/
-│   ├── ai-elements/         # AI-specific components (prompt, response, etc.)
-│   ├── chat/                # Chat interface components
-│   ├── chats/               # Chat list components
-│   ├── home/                # Home page components
-│   ├── projects/            # Projects page components
-│   ├── providers/           # React context providers
-│   ├── shared/              # Shared layout components
-│   └── ui/                  # Reusable UI primitives
-├── contexts/                # React contexts
-├── hooks/                   # Custom React hooks
-├── lib/
-│   ├── db/                  # Database schema, queries & migrations
-│   └── ...                  # Utilities and configurations
-├── types/                   # TypeScript type definitions
-└── public/                  # Static assets
+│   ├── ai-elements/         # AI Elements primitives (prompt input, preview…)
+│   ├── layout/              # App header, page container, resizable layout
+│   ├── providers/           # Theme & SWR providers
+│   └── ui/                  # shadcn/ui primitives
+├── features/                # One folder per feature
+│   ├── auth/                # Auth form, server actions, validation schemas
+│   ├── chat/                # Conversation UI, streaming hooks, message rendering
+│   ├── chats/               # Chat list, chat selector and chat actions
+│   ├── projects/            # Projects grid and its server loader
+│   ├── v0-api-key/          # Bring-your-own-key dialog and API client
+│   └── env-setup/           # Missing environment variable screen
+├── hooks/                   # Generic React hooks
+├── lib/                     # Isomorphic utilities (cn, HTTP client, error codes)
+├── server/                  # Server-only code
+│   ├── auth/                # NextAuth config and password hashing
+│   ├── chats/               # Ownership checks, rate limit, request schemas
+│   ├── db/                  # Drizzle schema, queries and migrations
+│   ├── http/                # Route helpers: auth, body parsing, error responses
+│   └── v0/                  # v0 client factory and API key encryption
+├── types/                   # Global type declarations
+└── proxy.ts                 # Route protection
 ```
 
 ## Authentication & Rate Limits
@@ -200,7 +206,7 @@ This project uses Biome for linting and formatting. Before submitting a PR:
 
 ```bash
 pnpm check:fix  # Auto-fix linting and formatting issues
-pnpm typecheck  # Ensure no TypeScript errors
+pnpm validate   # Biome, TypeScript and React Doctor, as in CI
 ```
 
 ## Testing
