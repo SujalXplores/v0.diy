@@ -1,31 +1,36 @@
 "use client";
 
-import { Eye, EyeOff } from "lucide-react";
+import { ViewIcon, ViewOffIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { type ComponentProps, useState } from "react";
-import { Input } from "@/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 
-type PasswordInputProps = Omit<ComponentProps<typeof Input>, "type">;
+type PasswordInputProps = Omit<ComponentProps<typeof InputGroupInput>, "type">;
 
-/** Password field with a show/hide toggle. */
 export function PasswordInput(props: PasswordInputProps) {
   const [isVisible, setIsVisible] = useState(false);
-  const Icon = isVisible ? EyeOff : Eye;
 
   return (
-    <div className="relative">
-      <Input
-        type={isVisible ? "text" : "password"}
-        className="h-10 pr-10"
-        {...props}
-      />
-      <button
-        type="button"
-        onClick={() => setIsVisible((visible) => !visible)}
-        className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
-        aria-label={isVisible ? "Hide password" : "Show password"}
-      >
-        <Icon className="h-4 w-4" />
-      </button>
-    </div>
+    <InputGroup>
+      <InputGroupInput type={isVisible ? "text" : "password"} {...props} />
+      <InputGroupAddon align="inline-end">
+        <InputGroupButton
+          size="icon-xs"
+          onClick={() => setIsVisible((visible) => !visible)}
+          aria-label={isVisible ? "Hide password" : "Show password"}
+          aria-pressed={isVisible}
+        >
+          <HugeiconsIcon
+            icon={isVisible ? ViewOffIcon : ViewIcon}
+            strokeWidth={2}
+          />
+        </InputGroupButton>
+      </InputGroupAddon>
+    </InputGroup>
   );
 }

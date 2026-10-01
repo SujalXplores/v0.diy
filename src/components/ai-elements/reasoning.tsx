@@ -1,6 +1,7 @@
 "use client";
 
-import { BrainIcon, ChevronDownIcon } from "lucide-react";
+import { AiBrain01Icon, ArrowDown01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { ComponentProps } from "react";
 import {
   Collapsible,
@@ -19,7 +20,6 @@ export function Reasoning({ className, ...props }: ReasoningProps) {
 export type ReasoningTriggerProps = ComponentProps<
   typeof CollapsibleTrigger
 > & {
-  /** Seconds spent thinking; 0 while unknown. */
   duration: number;
 };
 
@@ -32,18 +32,26 @@ export function ReasoningTrigger({
   return (
     <CollapsibleTrigger
       className={cn(
-        "group flex items-center gap-2 text-muted-foreground text-sm",
+        "group flex items-center gap-1.5 rounded-md text-muted-foreground text-xs transition-colors hover:text-foreground",
         className,
       )}
       {...props}
     >
       {children ?? (
         <>
-          <BrainIcon className="size-4" />
-          <p>
-            {duration === 0 ? "Thinking..." : `Thought for ${duration} seconds`}
-          </p>
-          <ChevronDownIcon className="size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+          <HugeiconsIcon
+            icon={AiBrain01Icon}
+            strokeWidth={2}
+            className="size-3.5"
+          />
+          <span className={cn(duration === 0 && "animate-pulse")}>
+            {duration === 0 ? "Thinking..." : `Thought for ${duration}s`}
+          </span>
+          <HugeiconsIcon
+            icon={ArrowDown01Icon}
+            strokeWidth={2}
+            className="size-3.5 transition-transform group-data-[state=open]:rotate-180"
+          />
         </>
       )}
     </CollapsibleTrigger>
@@ -64,8 +72,8 @@ export function ReasoningContent({
   return (
     <CollapsibleContent
       className={cn(
-        "mt-4 text-sm",
-        "data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 text-popover-foreground outline-none data-[state=closed]:animate-out data-[state=open]:animate-in",
+        "mt-3 border-l-2 pl-3 text-muted-foreground text-xs/relaxed",
+        "data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 outline-none data-[state=closed]:animate-out data-[state=open]:animate-in",
         className,
       )}
       {...props}

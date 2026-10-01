@@ -13,7 +13,8 @@ export const users = pgTable("users", {
 
 export type User = InferSelectModel<typeof users>;
 
-// Chat content lives in the v0 API; this table only records who owns which chat.
+export type ChatApiVersion = "v1" | "v2";
+
 export const chat_ownerships = pgTable(
   "chat_ownerships",
   {
@@ -23,8 +24,11 @@ export const chat_ownerships = pgTable(
       .notNull()
       .references(() => users.id),
     created_at: timestamp("created_at").notNull().defaultNow(),
+    api_version: varchar("api_version", { length: 8 })
+      .$type<ChatApiVersion>()
+      .notNull()
+      .default("v1"),
   },
-  // Each v0 chat can only be owned by one user.
   (table) => [unique().on(table.v0_chat_id)],
 );
 

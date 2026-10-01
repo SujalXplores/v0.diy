@@ -1,5 +1,6 @@
 "use client";
 
+import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { ChatDialog, type ChatDialogStateProps } from "./chat-dialog";
 
@@ -18,25 +19,28 @@ export function RenameChatDialog({
   return (
     <ChatDialog
       {...dialogProps}
-      title="Rename Chat"
-      description="Enter a new name for this chat."
-      confirmLabel="Rename Chat"
-      pendingLabel="Renaming..."
+      title="Rename chat"
+      description="Give this chat a name you'll recognize later."
+      confirmLabel="Save"
+      pendingLabel="Saving..."
       onConfirm={onConfirm}
       confirmDisabled={!name.trim()}
     >
-      <Input
-        placeholder="Chat name"
-        aria-label="Chat name"
-        value={name}
-        onChange={(event) => onNameChange(event.target.value)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter") {
-            onConfirm();
-          }
-        }}
-        disabled={dialogProps.isPending}
-      />
+      <Field>
+        <FieldLabel htmlFor="chat-name">Name</FieldLabel>
+        <Input
+          id="chat-name"
+          placeholder="My landing page"
+          value={name}
+          onChange={(event) => onNameChange(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && name.trim()) {
+              onConfirm();
+            }
+          }}
+          disabled={dialogProps.isPending}
+        />
+      </Field>
     </ChatDialog>
   );
 }

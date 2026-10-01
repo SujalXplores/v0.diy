@@ -14,17 +14,17 @@ const KEYBOARD_STEP_PERCENT = 5;
 interface ResizableLayoutProps {
   leftPanel: ReactNode;
   rightPanel: ReactNode;
-  /** Widths are percentages of the container. */
   defaultLeftWidth?: number;
   minLeftWidth?: number;
   maxLeftWidth?: number;
   className?: string;
+  leftClassName?: string;
+  rightClassName?: string;
 }
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
 
-/** Two panels separated by a draggable, keyboard-accessible divider. */
 export function ResizableLayout({
   leftPanel,
   rightPanel,
@@ -32,6 +32,8 @@ export function ResizableLayout({
   minLeftWidth = 20,
   maxLeftWidth = 60,
   className,
+  leftClassName,
+  rightClassName,
 }: ResizableLayoutProps) {
   const [leftWidth, setLeftWidth] = useState(defaultLeftWidth);
   const [isDragging, setIsDragging] = useState(false);
@@ -85,24 +87,23 @@ export function ResizableLayout({
       ref={containerRef}
       className={cn(
         "flex h-full",
-        // Iframes swallow mouse events, which would end drags over the preview.
         isDragging && "[&_iframe]:pointer-events-none",
         className,
       )}
     >
-      <div className="flex flex-col" style={{ width: `${leftWidth}%` }}>
+      <div
+        className={cn("flex min-w-0 flex-col max-md:w-full!", leftClassName)}
+        style={{ width: `${leftWidth}%` }}
+      >
         {leftPanel}
       </div>
 
-      {/* A focusable separator is the interactive ARIA "window splitter"
-          pattern, so handlers on it are expected. */}
       {/* react-doctor-disable-next-line react-doctor/no-noninteractive-element-interactions */}
       <hr
         className={cn(
-          "relative m-0 h-full w-px cursor-col-resize border-0 bg-border transition-colors dark:bg-input",
-          // Widen the grab area beyond the 1px line.
+          "relative z-10 m-0 hidden h-full w-px shrink-0 cursor-col-resize border-0 bg-border outline-none transition-colors hover:bg-ring focus-visible:bg-ring md:block",
           "before:absolute before:inset-y-0 before:-left-1.5 before:w-3 before:content-['']",
-          isDragging && "bg-blue-500 dark:bg-blue-400",
+          isDragging && "bg-ring",
         )}
         onMouseDown={(event) => {
           event.preventDefault();
@@ -117,7 +118,9 @@ export function ResizableLayout({
         tabIndex={0}
       />
 
-      <div className="flex flex-1 flex-col">{rightPanel}</div>
+      <div className={cn("flex min-w-0 flex-1 flex-col", rightClassName)}>
+        {rightPanel}
+      </div>
     </div>
   );
 }

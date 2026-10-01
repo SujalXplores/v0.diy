@@ -6,7 +6,6 @@ import {
   type ApiErrorCode,
 } from "@/lib/api-error-codes";
 
-/** An error that maps directly onto an HTTP error response. */
 export class HttpError extends Error {
   readonly status: number;
   readonly code: ApiErrorCode | undefined;
@@ -19,7 +18,7 @@ export class HttpError extends Error {
   }
 
   toResponse(): Response {
-    const body: ApiErrorBody = { error: this.message };
+    const body: ApiErrorBody = { error: this.message, message: this.message };
     if (this.code) {
       body.code = this.code;
     }
@@ -32,10 +31,6 @@ export const unauthorizedError = () =>
 
 export const badRequestError = (message: string) => new HttpError(400, message);
 
-/**
- * Converts anything thrown inside a route handler into a JSON response.
- * Unexpected errors are logged and reported as a 500.
- */
 export function toErrorResponse(
   error: unknown,
   logContext: string,
@@ -49,7 +44,10 @@ export function toErrorResponse(
 
   const body: ApiErrorBody = {
     error: fallbackMessage,
-    details: error instanceof Error ? error.message : "Unknown error",
+    message: fallbackMessage,
   };
+  if (process.env.NODE_ENV === "development") {
+    body.details = error instanceof Error ? error.message : "Unknown error";
+  }
   return Response.json(body, { status: 500 });
 }

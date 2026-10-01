@@ -1,6 +1,5 @@
 import type { ApiErrorBody } from "@/lib/api-error-codes";
 
-/** An API call that returned a non-2xx status. */
 export class ApiRequestError extends Error {
   readonly status: number;
   readonly code: ApiErrorBody["code"];
@@ -17,7 +16,6 @@ function isApiErrorBody(value: unknown): value is Partial<ApiErrorBody> {
   return typeof value === "object" && value !== null;
 }
 
-/** Reads the `{ error, code }` body of a failed response, if there is one. */
 export async function readApiError(
   response: Response,
 ): Promise<Partial<ApiErrorBody>> {
@@ -25,10 +23,6 @@ export async function readApiError(
   return isApiErrorBody(body) ? body : {};
 }
 
-/**
- * Sends a request and parses the JSON response.
- * @throws ApiRequestError for non-2xx responses
- */
 export async function requestJson<T>(
   url: string,
   init: RequestInit & { json?: unknown } = {},

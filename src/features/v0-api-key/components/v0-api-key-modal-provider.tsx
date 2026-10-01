@@ -1,6 +1,8 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { type ReactNode, useRef, useState } from "react";
+import { toast } from "sonner";
 import { useSWRConfig } from "swr";
 import { V0ApiKeyModalContext } from "../context";
 import {
@@ -13,12 +15,11 @@ interface V0ApiKeyModalProviderProps {
   children: ReactNode;
 }
 
-/** Owns the global API-key dialog and exposes helpers to open it. */
 export function V0ApiKeyModalProvider({
   children,
 }: V0ApiKeyModalProviderProps) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
-  // Only read when the key is saved, so it doesn't need to trigger renders.
   const onSavedRef = useRef<(() => void) | undefined>(undefined);
   const { mutate } = useSWRConfig();
 
@@ -44,13 +45,27 @@ export function V0ApiKeyModalProvider({
     }
   };
 
+  const handleSaved = () => {
+    toast.success("API key saved", {
+      description: "You're all set to start generating.",
+    });
+    router.refresh();
+    onSavedRef.current?.();
+  };
+
+  const handleRemoved = () => {
+    toast.success("API key removed");
+    router.refresh();
+  };
+
   return (
     <V0ApiKeyModalContext value={{ openKeyModal, requireV0ApiKey }}>
       {children}
       <V0ApiKeyModal
         open={open}
         onOpenChange={setOpen}
-        onSaved={() => onSavedRef.current?.()}
+        onSaved={handleSaved}
+        onRemoved={handleRemoved}
       />
     </V0ApiKeyModalContext>
   );

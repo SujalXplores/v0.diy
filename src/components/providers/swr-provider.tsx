@@ -14,7 +14,6 @@ const SWR_OPTIONS: SWRConfiguration = {
   revalidateOnReconnect: true,
   refreshInterval: 0,
   onErrorRetry: (error, _key, _config, revalidate, { retryCount }) => {
-    // Client errors (401, 404, 428…) won't fix themselves on retry.
     const isClientError =
       error instanceof ApiRequestError && error.status < 500;
 

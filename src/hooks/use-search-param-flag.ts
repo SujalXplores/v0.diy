@@ -4,10 +4,6 @@ import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { useLatestRef } from "./use-latest-ref";
 
-/**
- * Runs `onMatch` when the URL has `?name=value`, then removes the param
- * without triggering a navigation. Callers must render inside <Suspense>.
- */
 export function useSearchParamFlag(
   name: string,
   value: string,

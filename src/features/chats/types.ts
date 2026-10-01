@@ -1,10 +1,15 @@
-import type { ChatDetail, ChatsFindResponse } from "v0-sdk";
+import type { Chat } from "@v0-sdk/react";
 
-/** A chat as listed by GET /api/chats. */
-export type ChatSummary = ChatsFindResponse["data"][number];
+export type ChatSummary = Pick<
+  Chat,
+  "id" | "title" | "privacy" | "vercelProjectId"
+> & {
+  createdAt: string | Date;
+  updatedAt?: string | Date | undefined;
+};
 
-export type ChatPrivacy = ChatDetail["privacy"];
+export type ChatPrivacy = Chat["privacy"];
 
 export interface ChatsResponse {
-  data: ChatSummary[];
+  chats: ChatSummary[];
 }

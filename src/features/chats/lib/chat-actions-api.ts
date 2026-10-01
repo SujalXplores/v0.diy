@@ -1,39 +1,35 @@
-import type { ChatDetail } from "v0-sdk";
+import type { Chat } from "@v0-sdk/react";
+import {
+  chatUrls,
+  duplicateChat as duplicate,
+} from "@/features/chat/lib/chat-api";
 import { requestJson } from "@/lib/http-client";
 import type { ChatPrivacy } from "../types";
 
-const chatUrl = (chatId: string) => `/api/chats/${chatId}`;
-
-export function renameChat(chatId: string, name: string): Promise<ChatDetail> {
-  return requestJson<ChatDetail>(
-    chatUrl(chatId),
-    { method: "PATCH", json: { name } },
+export function renameChat(chatId: string, title: string): Promise<Chat> {
+  return requestJson<Chat>(
+    chatUrls.chat(chatId),
+    { method: "PATCH", json: { title } },
     "Failed to rename chat",
   );
 }
 
 export async function deleteChat(chatId: string): Promise<void> {
   await requestJson(
-    chatUrl(chatId),
+    chatUrls.chat(chatId),
     { method: "DELETE" },
     "Failed to delete chat",
   );
 }
 
-export function duplicateChat(chatId: string): Promise<ChatDetail> {
-  return requestJson<ChatDetail>(
-    "/api/chat/fork",
-    { method: "POST", json: { chatId } },
-    "Failed to duplicate chat",
-  );
-}
+export const duplicateChat = duplicate;
 
 export function updateChatVisibility(
   chatId: string,
   privacy: ChatPrivacy,
-): Promise<ChatDetail> {
-  return requestJson<ChatDetail>(
-    `${chatUrl(chatId)}/visibility`,
+): Promise<Chat> {
+  return requestJson<Chat>(
+    chatUrls.chat(chatId),
     { method: "PATCH", json: { privacy } },
     "Failed to change chat visibility",
   );

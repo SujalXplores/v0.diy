@@ -26,7 +26,6 @@ function getEncryptionKey(): Buffer {
   return createHash("sha256").update(secret).digest();
 }
 
-/** Encrypts a value with AES-256-GCM; the auth tag is appended to the ciphertext. */
 export function encryptV0ApiKey(value: string): EncryptedValue {
   const iv = randomBytes(IV_LENGTH);
   const cipher = createCipheriv(ALGORITHM, getEncryptionKey(), iv);

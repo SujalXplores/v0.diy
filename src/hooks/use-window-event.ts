@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { useLatestRef } from "./use-latest-ref";
 
-/** Subscribes to a window event for the component's lifetime. */
 export function useWindowEvent<K extends keyof WindowEventMap>(
   eventName: K,
   handler: (event: WindowEventMap[K]) => void,

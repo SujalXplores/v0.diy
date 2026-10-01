@@ -2,20 +2,26 @@ import "server-only";
 
 import { and, count, desc, eq, gte } from "drizzle-orm";
 import { getDb } from "../connection";
-import { type ChatOwnership, chat_ownerships } from "../schema";
+import {
+  type ChatApiVersion,
+  type ChatOwnership,
+  chat_ownerships,
+} from "../schema";
 
-/** Records that a user owns a v0 chat. Does nothing if already recorded. */
 export async function createChatOwnership(
   v0ChatId: string,
   userId: string,
-): Promise<void> {
+  apiVersion: ChatApiVersion = "v2",
+): Promise<boolean> {
   await getDb()
     .insert(chat_ownerships)
-    .values({ v0_chat_id: v0ChatId, user_id: userId })
+    .values({ v0_chat_id: v0ChatId, user_id: userId, api_version: apiVersion })
     .onConflictDoNothing({ target: chat_ownerships.v0_chat_id });
+
+  const ownership = await getChatOwnership(v0ChatId);
+  return ownership?.user_id === userId;
 }
 
-/** Gets the ownership record for a v0 chat ID. */
 export async function getChatOwnership(
   v0ChatId: string,
 ): Promise<ChatOwnership | null> {
@@ -27,25 +33,51 @@ export async function getChatOwnership(
   return ownership ?? null;
 }
 
-/** Gets all chat IDs owned by a user, newest first. */
-export async function getChatIdsByUserId(userId: string): Promise<string[]> {
+export async function getChatIdsByUserId(
+  userId: string,
+  apiVersion: ChatApiVersion = "v2",
+): Promise<string[]> {
   const ownerships = await getDb()
     .select({ v0ChatId: chat_ownerships.v0_chat_id })
     .from(chat_ownerships)
-    .where(eq(chat_ownerships.user_id, userId))
+    .where(
+      and(
+        eq(chat_ownerships.user_id, userId),
+        eq(chat_ownerships.api_version, apiVersion),
+      ),
+    )
     .orderBy(desc(chat_ownerships.created_at));
 
   return ownerships.map((ownership) => ownership.v0ChatId);
 }
 
-/** Deletes the ownership record for a v0 chat ID. */
 export async function deleteChatOwnership(v0ChatId: string): Promise<void> {
   await getDb()
     .delete(chat_ownerships)
     .where(eq(chat_ownerships.v0_chat_id, v0ChatId));
 }
 
-/** Counts the chats a user created since the given date. */
+export async function replaceLegacyChatOwnership(
+  legacyChatId: string,
+  newChatId: string,
+  userId: string,
+): Promise<void> {
+  await getDb().transaction(async (tx) => {
+    await tx
+      .delete(chat_ownerships)
+      .where(
+        and(
+          eq(chat_ownerships.v0_chat_id, legacyChatId),
+          eq(chat_ownerships.user_id, userId),
+        ),
+      );
+    await tx
+      .insert(chat_ownerships)
+      .values({ v0_chat_id: newChatId, user_id: userId, api_version: "v2" })
+      .onConflictDoNothing({ target: chat_ownerships.v0_chat_id });
+  });
+}
+
 export async function countChatsCreatedSince(
   userId: string,
   since: Date,

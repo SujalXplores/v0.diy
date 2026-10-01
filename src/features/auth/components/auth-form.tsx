@@ -1,9 +1,19 @@
 "use client";
 
+import { AlertCircleIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
 import { useActionState } from "react";
+import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { signInAction, signUpAction } from "../actions";
 import { type AuthFormType, MIN_PASSWORD_LENGTH } from "../schemas";
 import { PasswordInput } from "./password-input";
@@ -11,9 +21,10 @@ import { PasswordInput } from "./password-input";
 const FORM_COPY = {
   signin: {
     action: signInAction,
-    submitLabel: "Sign In",
+    submitLabel: "Sign in",
     pendingLabel: "Signing in...",
-    passwordPlaceholder: "••••••••",
+    passwordPlaceholder: "Enter your password",
+    passwordHint: null,
     passwordAutoComplete: "current-password",
     minPasswordLength: 1,
     switchPrompt: "Don't have an account?",
@@ -22,9 +33,10 @@ const FORM_COPY = {
   },
   signup: {
     action: signUpAction,
-    submitLabel: "Create Account",
+    submitLabel: "Create account",
     pendingLabel: "Creating account...",
-    passwordPlaceholder: `Min. ${MIN_PASSWORD_LENGTH} characters`,
+    passwordPlaceholder: "Create a password",
+    passwordHint: `Use at least ${MIN_PASSWORD_LENGTH} characters.`,
     passwordAutoComplete: "new-password",
     minPasswordLength: MIN_PASSWORD_LENGTH,
     switchPrompt: "Already have an account?",
@@ -42,63 +54,54 @@ export function AuthForm({ type }: AuthFormProps) {
   const [state, formAction, isPending] = useActionState(copy.action, undefined);
 
   return (
-    <form action={formAction} className="space-y-5">
-      <div className="space-y-2">
-        <label
-          htmlFor="email"
-          className="block font-medium text-foreground text-sm"
-        >
-          Email
-        </label>
-        <Input
-          id="email"
-          name="email"
-          type="email"
-          placeholder="name@example.com"
-          required
-          autoFocus
-          autoComplete="email"
-          className="h-10"
-        />
-      </div>
+    <form action={formAction} className="space-y-6">
+      <FieldGroup>
+        <Field>
+          <FieldLabel htmlFor="email">Email</FieldLabel>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="name@example.com"
+            required
+            autoFocus
+            autoComplete="email"
+          />
+        </Field>
 
-      <div className="space-y-2">
-        <label
-          htmlFor="password"
-          className="block font-medium text-foreground text-sm"
-        >
-          Password
-        </label>
-        <PasswordInput
-          id="password"
-          name="password"
-          placeholder={copy.passwordPlaceholder}
-          required
-          autoComplete={copy.passwordAutoComplete}
-          minLength={copy.minPasswordLength}
-        />
-      </div>
+        <Field>
+          <FieldLabel htmlFor="password">Password</FieldLabel>
+          <PasswordInput
+            id="password"
+            name="password"
+            placeholder={copy.passwordPlaceholder}
+            required
+            autoComplete={copy.passwordAutoComplete}
+            minLength={copy.minPasswordLength}
+          />
+          {copy.passwordHint && (
+            <FieldDescription>{copy.passwordHint}</FieldDescription>
+          )}
+        </Field>
+      </FieldGroup>
 
       {state?.type === "error" && (
-        <div className="rounded-md bg-destructive/10 px-3 py-2.5 text-destructive text-sm">
-          {state.message}
-        </div>
+        <Alert variant="destructive">
+          <HugeiconsIcon icon={AlertCircleIcon} strokeWidth={2} />
+          <AlertTitle>{state.message}</AlertTitle>
+        </Alert>
       )}
 
-      <Button
-        type="submit"
-        className="h-10 w-full"
-        disabled={isPending}
-        size="lg"
-      >
+      <Button type="submit" size="lg" className="w-full" disabled={isPending}>
+        {isPending && <Spinner data-icon="inline-start" />}
         {isPending ? copy.pendingLabel : copy.submitLabel}
       </Button>
 
-      <p className="text-center text-muted-foreground text-sm">
+      <p className="text-center text-muted-foreground text-xs">
         {copy.switchPrompt}{" "}
         <Link
           href={copy.switchHref}
-          className="font-medium text-foreground transition-colors hover:text-primary"
+          className="font-medium text-foreground underline-offset-4 hover:underline"
         >
           {copy.switchLabel}
         </Link>

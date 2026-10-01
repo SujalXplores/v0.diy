@@ -7,7 +7,6 @@ function getRecognitionConstructor(): SpeechRecognitionConstructor | undefined {
   return window.SpeechRecognition ?? window.webkitSpeechRecognition;
 }
 
-// Browser support never changes at runtime, so there is nothing to subscribe to.
 const subscribeToNothing = () => () => undefined;
 
 interface UseSpeechRecognitionOptions {
@@ -16,7 +15,6 @@ interface UseSpeechRecognitionOptions {
   onError?: (error: string) => void;
 }
 
-/** Single-utterance speech-to-text using the Web Speech API. */
 export function useSpeechRecognition({
   lang = "en-US",
   onTranscript,
@@ -29,7 +27,6 @@ export function useSpeechRecognition({
   );
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
-  // Recognition events fire long after render; read the latest callbacks.
   const callbacksRef = useLatestRef({ onTranscript, onError });
 
   useEffect(
@@ -70,7 +67,6 @@ export function useSpeechRecognition({
       setIsListening(false);
     };
     recognition.onerror = (event) => {
-      // "aborted" comes from stopping or unmounting, not a real failure.
       if (event.error !== "aborted") {
         console.error("Speech recognition error:", event.error);
         callbacksRef.current.onError?.(event.error);

@@ -1,55 +1,39 @@
 "use client";
 
-import { Suspense } from "react";
 import { AppHeader } from "@/components/layout/app-header";
-import { useSearchParamFlag } from "@/hooks/use-search-param-flag";
+import { useModelSettings } from "../hooks/use-model-settings";
 import { useNewChat } from "../hooks/use-new-chat";
-import { RESET_PARAM } from "../lib/reset-param";
-import { ChatWorkspace } from "./chat-workspace";
+import { usePromptComposer } from "../hooks/use-prompt-composer";
 import { NewChatHero } from "./new-chat-hero";
 
-/** Resets the homepage when the header logo links to `/?reset=true`. */
-function ResetListener({ onReset }: { onReset: () => void }) {
-  useSearchParamFlag(RESET_PARAM.name, RESET_PARAM.value, onReset);
-  return null;
-}
+const NEW_CHAT_DRAFT_SCOPE = "new-chat";
 
 export function NewChatView() {
-  const {
-    composer,
-    conversation,
-    preview,
-    hasStarted,
-    submit,
-    handleChatData,
-    handleStreamingComplete,
-    reset,
-  } = useNewChat();
+  const composer = usePromptComposer(NEW_CHAT_DRAFT_SCOPE);
+  const { settings, update } = useModelSettings();
+  const newChat = useNewChat({
+    onPromptRejected: (prompt) =>
+      composer.restore(prompt.text, prompt.attachments),
+  });
+
+  const pendingPrompt =
+    newChat.messages
+      .findLast((message) => message.role === "user")
+      ?.parts.find((part) => part.type === "text")?.text ?? null;
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-black">
-      <Suspense fallback={null}>
-        <ResetListener onReset={reset} />
-      </Suspense>
-
+    <div className="flex min-h-dvh flex-col bg-background">
       <AppHeader />
-
-      {hasStarted ? (
-        <ChatWorkspace
-          conversation={conversation}
-          composer={composer}
-          preview={preview}
-          onSubmit={submit}
-          onStreamingComplete={handleStreamingComplete}
-          onChatData={handleChatData}
-        />
-      ) : (
-        <NewChatHero
-          composer={composer}
-          isLoading={conversation.isLoading}
-          onSubmit={submit}
-        />
-      )}
+      <NewChatHero
+        composer={composer}
+        modelSettings={settings}
+        onModelSettingsChange={update}
+        isCreating={newChat.isCreating}
+        pendingPrompt={pendingPrompt}
+        error={newChat.error}
+        onDismissError={newChat.dismissError}
+        onSubmit={(prompt) => newChat.create(prompt, settings)}
+      />
     </div>
   );
 }

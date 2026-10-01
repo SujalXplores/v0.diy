@@ -1,5 +1,3 @@
-// Web Speech API types that TypeScript's DOM lib doesn't ship.
-
 interface SpeechRecognitionAlternative {
   readonly transcript: string;
   readonly confidence: number;

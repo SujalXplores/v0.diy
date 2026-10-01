@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Spinner } from "@/components/ui/spinner";
 
 export interface ChatDialogStateProps {
   open: boolean;
@@ -28,7 +29,6 @@ interface ChatDialogProps extends ChatDialogStateProps {
   children?: ReactNode;
 }
 
-/** Shared layout of the chat action dialogs: text, optional body, buttons. */
 export function ChatDialog({
   open,
   onOpenChange,
@@ -44,12 +44,12 @@ export function ChatDialog({
 }: ChatDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
-        {children && <div className="py-4">{children}</div>}
+        {children}
         <DialogFooter>
           <Button
             variant="outline"
@@ -63,6 +63,7 @@ export function ChatDialog({
             onClick={onConfirm}
             disabled={isPending || confirmDisabled}
           >
+            {isPending && <Spinner />}
             {isPending ? pendingLabel : confirmLabel}
           </Button>
         </DialogFooter>

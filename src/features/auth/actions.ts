@@ -11,7 +11,6 @@ import { type AuthActionResult, signInSchema, signUpSchema } from "./schemas";
 
 const GENERIC_ERROR = "Something went wrong. Please try again.";
 
-// The header refreshes the client session when it sees this query param.
 const POST_AUTH_REDIRECT = "/?refresh=session";
 
 function errorResult(message: string): AuthActionResult {

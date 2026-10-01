@@ -1,14 +1,19 @@
 "use client";
 
-import { ImageIcon } from "lucide-react";
+import { ImageAdd01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { type ChangeEvent, useRef } from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { PromptInputButton, type PromptInputButtonProps } from "./prompt-input";
 
 export type PromptInputImageButtonProps = PromptInputButtonProps & {
   onImageSelect: (files: File[]) => void;
 };
 
-/** Opens the file picker and reports the selected images. */
 export function PromptInputImageButton({
   onImageSelect,
   ...props
@@ -24,7 +29,6 @@ export function PromptInputImageButton({
       onImageSelect(images);
     }
 
-    // Reset so selecting the same file again still fires a change event.
     event.target.value = "";
   };
 
@@ -39,13 +43,18 @@ export function PromptInputImageButton({
         className="hidden"
         aria-label="Attach images"
       />
-      <PromptInputButton
-        onClick={() => fileInputRef.current?.click()}
-        aria-label="Attach images"
-        {...props}
-      >
-        <ImageIcon className="size-4" />
-      </PromptInputButton>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <PromptInputButton
+            onClick={() => fileInputRef.current?.click()}
+            aria-label="Attach images"
+            {...props}
+          >
+            <HugeiconsIcon icon={ImageAdd01Icon} strokeWidth={2} />
+          </PromptInputButton>
+        </TooltipTrigger>
+        <TooltipContent>Attach images</TooltipContent>
+      </Tooltip>
     </>
   );
 }

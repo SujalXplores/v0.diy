@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 
 const RESET_DELAY_MS = 2000;
 
-/** Copies text and reports `copied: true` for a short moment afterwards. */
 export function useCopyToClipboard() {
   const [copied, setCopied] = useState(false);
 

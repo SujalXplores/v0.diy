@@ -5,7 +5,6 @@ import useSWR from "swr";
 import { USER_CHATS_CACHE_KEY } from "@/features/chat/lib/chat-api";
 import type { ChatsResponse } from "../types";
 
-/** The signed-in user's chats; empty while signed out. */
 export function useUserChats() {
   const { data: session, status } = useSession();
   const isSignedIn = Boolean(session?.user?.id);
@@ -15,7 +14,7 @@ export function useUserChats() {
   );
 
   return {
-    chats: data?.data ?? [],
+    chats: data?.chats ?? [],
     error: error instanceof Error ? error : undefined,
     isLoading: status === "loading" || isLoading,
     isSignedIn,

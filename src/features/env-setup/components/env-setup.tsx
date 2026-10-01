@@ -1,55 +1,105 @@
 "use client";
 
-import { Check, Copy } from "lucide-react";
+import {
+  Copy01Icon,
+  Settings01Icon,
+  Tick02Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { LogoMark } from "@/components/layout/logo";
 import { Button } from "@/components/ui/button";
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
+import type { RequiredEnvVar } from "../lib/env-check";
 
 interface EnvSetupProps {
-  /** The `.env` lines the developer still needs to add. */
+  envVars: RequiredEnvVar[];
   envFileContent: string;
 }
 
-export function EnvSetup({ envFileContent }: EnvSetupProps) {
+const STEPS = [
+  "Copy the snippet below",
+  "Paste it into .env in the project root and fill in the values",
+  "Restart the dev server",
+];
+
+export function EnvSetup({ envVars, envFileContent }: EnvSetupProps) {
   const { copied, copy } = useCopyToClipboard();
-  const CopyIcon = copied ? Check : Copy;
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-black">
-      <div className="flex flex-1 items-center justify-center px-4 sm:px-6 lg:px-8">
-        <div className="w-full max-w-md">
-          <div className="mb-8 text-center">
-            <h2 className="mb-4 font-bold text-3xl text-gray-900 dark:text-white">
-              Setup Required
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              Add these environment variables to your{" "}
-              <code className="rounded bg-gray-200 px-1 dark:bg-gray-800">
-                .env
-              </code>{" "}
-              file:
-            </p>
-          </div>
+    <div className="relative flex min-h-dvh items-center justify-center bg-background px-4 py-12">
+      <div className="mask-radial-fade pointer-events-none absolute inset-0 bg-dot-grid" />
 
-          <div className="mb-6 rounded-lg bg-[oklch(0.922_0_0)] p-6 dark:bg-[oklch(1_0_0/15%)]">
-            <pre className="whitespace-pre-wrap break-all text-gray-900 text-sm dark:text-gray-100">
-              {envFileContent}
-            </pre>
+      <div className="relative w-full max-w-lg space-y-6">
+        <div className="space-y-3 text-center">
+          <div className="mx-auto flex w-fit items-center gap-2">
+            <LogoMark className="size-8 text-[0.6875rem]" />
+            <span className="flex size-8 items-center justify-center rounded-md bg-muted text-muted-foreground">
+              <HugeiconsIcon icon={Settings01Icon} strokeWidth={2} />
+            </span>
           </div>
-
-          <div className="space-y-4 text-center">
-            <Button
-              onClick={() => copy(envFileContent)}
-              className="flex w-full items-center justify-center gap-2"
-            >
-              <CopyIcon className="h-4 w-4" />
-              {copied ? "Copied!" : "Copy to Clipboard"}
-            </Button>
-
-            <p className="text-gray-500 text-sm dark:text-gray-400">
-              After adding the variables, restart your server
-            </p>
-          </div>
+          <h1 className="font-semibold text-2xl tracking-tight">
+            Finish setting up v0.diy
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            {envVars.length === 1
+              ? "One environment variable is missing."
+              : `${envVars.length} environment variables are missing.`}
+          </p>
         </div>
+
+        <div className="overflow-hidden rounded-lg bg-card ring-1 ring-foreground/10">
+          <ol className="space-y-2 border-b p-4">
+            {STEPS.map((step, index) => (
+              <li key={step} className="flex items-center gap-3 text-xs">
+                <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-muted font-medium font-mono text-[0.625rem] text-muted-foreground">
+                  {index + 1}
+                </span>
+                {step}
+              </li>
+            ))}
+          </ol>
+
+          <div className="flex items-center justify-between border-b bg-muted/40 px-4 py-1.5">
+            <span className="font-mono text-muted-foreground text-xs">
+              .env
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => copy(envFileContent)}
+              aria-label="Copy environment variables"
+            >
+              <HugeiconsIcon
+                icon={copied ? Tick02Icon : Copy01Icon}
+                strokeWidth={2}
+                data-icon="inline-start"
+              />
+              {copied ? "Copied" : "Copy"}
+            </Button>
+          </div>
+          <pre className="overflow-x-auto p-4 font-mono text-xs/relaxed">
+            {envFileContent}
+          </pre>
+
+          <dl className="space-y-3 border-t p-4">
+            {envVars.map((envVar) => (
+              <div key={envVar.name} className="space-y-0.5">
+                <dt>
+                  <code className="font-medium font-mono text-xs">
+                    {envVar.name}
+                  </code>
+                </dt>
+                <dd className="text-muted-foreground text-xs">
+                  {envVar.description}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+
+        <p className="text-center text-muted-foreground text-xs">
+          This screen only appears in development.
+        </p>
       </div>
     </div>
   );

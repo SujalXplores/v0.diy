@@ -1,23 +1,60 @@
-import { FolderOpen, Plus } from "lucide-react";
-import Link from "next/link";
+"use client";
+
+import { Folder01Icon, Search01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@/components/ui/button";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { NewProjectButton } from "./new-project-button";
 
 export function ProjectsEmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <FolderOpen className="h-12 w-12 text-gray-400 dark:text-gray-500" />
-      <h3 className="mt-4 font-medium text-gray-900 dark:text-white">
-        No projects yet
-      </h3>
-      <p className="mt-1 text-gray-500 text-sm dark:text-gray-400">
-        Get started by creating your first project.
-      </p>
-      <Button asChild className="mt-6">
-        <Link href="/">
-          <Plus className="mr-2 h-4 w-4" />
-          New Project
-        </Link>
-      </Button>
-    </div>
+    <Empty className="border">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <HugeiconsIcon icon={Folder01Icon} strokeWidth={2} />
+        </EmptyMedia>
+        <EmptyTitle>No projects yet</EmptyTitle>
+        <EmptyDescription>
+          Describe what you want to build. Every app v0 generates lands here
+          with a snapshot of its preview.
+        </EmptyDescription>
+      </EmptyHeader>
+      <EmptyContent>
+        <NewProjectButton />
+      </EmptyContent>
+    </Empty>
+  );
+}
+
+interface ProjectsNoResultsProps {
+  query: string;
+  onClear: () => void;
+}
+
+export function ProjectsNoResults({ query, onClear }: ProjectsNoResultsProps) {
+  return (
+    <Empty className="border">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <HugeiconsIcon icon={Search01Icon} strokeWidth={2} />
+        </EmptyMedia>
+        <EmptyTitle>No projects match &ldquo;{query}&rdquo;</EmptyTitle>
+        <EmptyDescription>
+          Check the spelling or try another name.
+        </EmptyDescription>
+      </EmptyHeader>
+      <EmptyContent>
+        <Button variant="outline" onClick={onClear}>
+          Clear search
+        </Button>
+      </EmptyContent>
+    </Empty>
   );
 }

@@ -2,22 +2,35 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { type MouseEvent, Suspense } from "react";
+import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { GitHubIcon } from "@/components/ui/icons";
-import { RESET_PARAM } from "@/features/chat/lib/reset-param";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ChatSelector } from "@/features/chats/components/chat-selector/chat-selector";
 import { useSearchParamFlag } from "@/hooks/use-search-param-flag";
+import { REPOSITORY_URL } from "@/lib/links";
+import { Logo } from "./logo";
 import { ThemeToggle } from "./theme-toggle";
+
+const AvatarSkeleton = () => <Skeleton className="size-8 rounded-full" />;
 
 const UserNav = dynamic(() => import("./user-nav").then((mod) => mod.UserNav), {
   ssr: false,
+  loading: AvatarSkeleton,
 });
 
-const REPOSITORY_URL = "https://github.com/SujalXplores/v0.diy";
+const NAV_LINKS = [
+  { href: "/projects", label: "Projects" },
+  { href: "/chats", label: "Chats" },
+] as const;
 
-/** Refreshes the client session after the auth actions redirect here. */
 function SessionRefreshListener() {
   const { update } = useSession();
   useSearchParamFlag("refresh", "session", () => {
@@ -26,56 +39,87 @@ function SessionRefreshListener() {
   return null;
 }
 
-export function AppHeader() {
-  const { data: session } = useSession();
-
-  // On the homepage the logo starts over instead of navigating nowhere.
-  const handleLogoClick = (event: MouseEvent<HTMLAnchorElement>) => {
-    if (window.location.pathname === "/") {
-      event.preventDefault();
-      window.location.href = `/?${RESET_PARAM.name}=${RESET_PARAM.value}`;
-    }
-  };
+function NavLinks() {
+  const pathname = usePathname();
 
   return (
-    <div className="border-border border-b dark:border-input">
+    <nav aria-label="Main" className="flex items-center gap-1">
+      {NAV_LINKS.map(({ href, label }) => {
+        const isActive = pathname === href;
+        return (
+          <Button key={href} asChild variant={isActive ? "secondary" : "ghost"}>
+            <Link href={href} aria-current={isActive ? "page" : undefined}>
+              {label}
+            </Link>
+          </Button>
+        );
+      })}
+    </nav>
+  );
+}
+
+function SignedOutActions() {
+  return (
+    <div className="flex items-center gap-1">
+      <Button asChild variant="ghost">
+        <Link href="/login">Sign in</Link>
+      </Button>
+      <Button asChild>
+        <Link href="/register">Sign up</Link>
+      </Button>
+    </div>
+  );
+}
+
+export function AppHeader() {
+  const { data: session, status } = useSession();
+
+  return (
+    <header className="sticky top-0 z-40 shrink-0 border-b bg-background">
       <Suspense fallback={null}>
         <SessionRefreshListener />
       </Suspense>
 
-      <div className="px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/"
-              onClick={handleLogoClick}
-              className="font-semibold text-gray-900 text-lg hover:text-gray-700 dark:text-white dark:hover:text-gray-300"
-            >
-              v0.diy
-            </Link>
-            <ChatSelector />
-          </div>
+      <div className="flex h-12 items-center justify-between gap-2 px-3 sm:px-4">
+        <div className="flex min-w-0 items-center gap-1">
+          <Link
+            href="/"
+            className="shrink-0 rounded-md p-1 outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+            aria-label="v0.diy home"
+          >
+            <Logo />
+          </Link>
+          {status === "authenticated" && <ChatSelector />}
+        </div>
 
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
-            <Button
-              variant="outline"
-              className="h-fit px-2 py-1.5 text-sm"
-              asChild
-            >
-              <Link
-                href={REPOSITORY_URL}
-                target="_blank"
-                rel="noopener noreferrer"
+        <div className="flex shrink-0 items-center gap-1">
+          {status === "authenticated" && <NavLinks />}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                asChild
+                variant="ghost"
+                size="icon"
+                className="max-sm:hidden"
               >
-                <GitHubIcon size={16} />
-                sujalxplores/v0.diy
-              </Link>
-            </Button>
-            <UserNav session={session} />
-          </div>
+                <Link
+                  href={REPOSITORY_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="View source on GitHub"
+                >
+                  <GitHubIcon size={14} />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>View source on GitHub</TooltipContent>
+          </Tooltip>
+          <ThemeToggle />
+          {status === "loading" && <AvatarSkeleton />}
+          {status === "authenticated" && <UserNav session={session} />}
+          {status === "unauthenticated" && <SignedOutActions />}
         </div>
       </div>
-    </div>
+    </header>
   );
 }

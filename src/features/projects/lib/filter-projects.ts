@@ -1,6 +1,5 @@
 import type { Project } from "../types";
 
-/** Case-insensitive project name search. */
 export function filterProjects(projects: Project[], query: string): Project[] {
   const normalizedQuery = query.trim().toLowerCase();
 

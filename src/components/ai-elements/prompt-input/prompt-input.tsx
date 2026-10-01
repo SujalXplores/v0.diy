@@ -1,6 +1,12 @@
 "use client";
 
-import { ArrowUpIcon, Loader2Icon, SquareIcon, XIcon } from "lucide-react";
+import {
+  ArrowUp02Icon,
+  Cancel01Icon,
+  Loading03Icon,
+  StopIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import {
   Children,
   type ComponentProps,
@@ -15,7 +21,6 @@ import { cn } from "@/lib/utils";
 const isImageFile = (file: File) => file.type.startsWith("image/");
 
 export type PromptInputProps = HTMLAttributes<HTMLFormElement> & {
-  /** Called with the images dropped onto the form. */
   onImageDrop?: (files: File[]) => void;
   isDragOver?: boolean;
 };
@@ -56,8 +61,9 @@ export function PromptInput({
   return (
     <form
       className={cn(
-        "w-full divide-y overflow-hidden rounded-xl border bg-background shadow-sm transition-colors",
-        isDragOver && "border-primary bg-primary/5",
+        "w-full overflow-hidden rounded-xl border bg-card shadow-xs transition-[border-color,box-shadow]",
+        "focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/30",
+        isDragOver && "border-ring border-dashed ring-2 ring-ring/30",
         className,
       )}
       onDragOver={handleDragOver}
@@ -70,14 +76,12 @@ export function PromptInput({
 
 export type PromptInputTextareaProps = ComponentProps<typeof Textarea>;
 
-/** Auto-growing textarea that submits on Enter and adds a newline on Shift+Enter. */
 export function PromptInputTextarea({
   className,
   placeholder = "What would you like to know?",
   ...props
 }: PromptInputTextareaProps) {
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    // Ignore Enter while an IME composition is in progress.
     if (
       event.key !== "Enter" ||
       event.shiftKey ||
@@ -93,8 +97,8 @@ export function PromptInputTextarea({
   return (
     <Textarea
       className={cn(
-        "w-full resize-none rounded-none border-none p-3 shadow-none outline-none ring-0",
-        "field-sizing-content max-h-[6lh] bg-transparent dark:bg-transparent",
+        "w-full resize-none rounded-none border-none px-3.5 pt-3 pb-1 shadow-none outline-none ring-0",
+        "field-sizing-content max-h-[8lh] bg-transparent text-sm md:text-sm dark:bg-transparent",
         "focus-visible:ring-0",
         className,
       )}
@@ -114,7 +118,7 @@ export function PromptInputToolbar({
 }: PromptInputToolbarProps) {
   return (
     <div
-      className={cn("flex items-center justify-between p-1", className)}
+      className={cn("flex items-center justify-between gap-2 p-2", className)}
       {...props}
     />
   );
@@ -127,14 +131,7 @@ export function PromptInputTools({
   ...props
 }: PromptInputToolsProps) {
   return (
-    <div
-      className={cn(
-        "flex items-center gap-1",
-        "[&_button:first-child]:rounded-bl-xl",
-        className,
-      )}
-      {...props}
-    />
+    <div className={cn("flex items-center gap-1", className)} {...props} />
   );
 }
 
@@ -147,14 +144,13 @@ export function PromptInputButton({
   ...props
 }: PromptInputButtonProps) {
   const resolvedSize =
-    size ?? (Children.count(props.children) > 1 ? "default" : "icon");
+    size ?? (Children.count(props.children) > 1 ? "default" : "icon-lg");
 
   return (
     <Button
       className={cn(
-        "shrink-0 gap-1.5 rounded-lg",
+        "shrink-0 rounded-lg",
         variant === "ghost" && "text-muted-foreground",
-        resolvedSize === "default" && "px-3",
         className,
       )}
       size={resolvedSize}
@@ -167,11 +163,11 @@ export function PromptInputButton({
 
 export type PromptInputStatus = "ready" | "submitted" | "streaming" | "error";
 
-const STATUS_ICONS: Record<PromptInputStatus, typeof ArrowUpIcon> = {
-  ready: ArrowUpIcon,
-  submitted: Loader2Icon,
-  streaming: SquareIcon,
-  error: XIcon,
+const STATUS_ICONS: Record<PromptInputStatus, IconSvgElement> = {
+  ready: ArrowUp02Icon,
+  submitted: Loading03Icon,
+  streaming: StopIcon,
+  error: Cancel01Icon,
 };
 
 export type PromptInputSubmitProps = ComponentProps<typeof Button> & {
@@ -181,16 +177,14 @@ export type PromptInputSubmitProps = ComponentProps<typeof Button> & {
 export function PromptInputSubmit({
   className,
   variant = "default",
-  size = "icon",
+  size = "icon-lg",
   status = "ready",
   children,
   ...props
 }: PromptInputSubmitProps) {
-  const Icon = STATUS_ICONS[status];
-
   return (
     <Button
-      className={cn("gap-1.5 rounded-lg", className)}
+      className={cn("rounded-lg", className)}
       size={size}
       type="submit"
       variant={variant}
@@ -198,8 +192,10 @@ export function PromptInputSubmit({
       {...props}
     >
       {children ?? (
-        <Icon
-          className={cn("size-4", status === "submitted" && "animate-spin")}
+        <HugeiconsIcon
+          icon={STATUS_ICONS[status]}
+          strokeWidth={2}
+          className={cn(status === "submitted" && "animate-spin")}
         />
       )}
     </Button>

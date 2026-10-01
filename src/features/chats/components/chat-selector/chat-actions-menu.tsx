@@ -1,12 +1,14 @@
 "use client";
 
 import {
-  Copy,
-  Edit2,
-  ExternalLink,
-  MoreHorizontal,
-  Trash2,
-} from "lucide-react";
+  ArrowUpRight01Icon,
+  Copy01Icon,
+  Delete02Icon,
+  MoreHorizontalIcon,
+  PencilEdit01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -27,12 +29,11 @@ interface ChatActionsMenuProps {
   chat: ChatSummary;
 }
 
-/** "More" menu for the open chat and the dialogs its items open. */
 export function ChatActionsMenu({ chat }: ChatActionsMenuProps) {
   const actions = useChatActions(chat);
   const { openDialog, setOpenDialog, pendingAction } = actions;
   const isBusy = pendingAction !== null;
-  const PrivacyIcon = getPrivacyOption(chat.privacy).icon;
+  const privacyIcon = getPrivacyOption(chat.privacy).icon;
 
   const dialogProps = (dialog: typeof openDialog) => ({
     open: openDialog === dialog,
@@ -46,56 +47,43 @@ export function ChatActionsMenu({ chat }: ChatActionsMenuProps) {
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
+            size="icon"
             disabled={isBusy}
+            aria-label="Chat options"
           >
-            <MoreHorizontal className="h-4 w-4" />
-            <span className="sr-only">Chat options</span>
+            <HugeiconsIcon icon={MoreHorizontalIcon} strokeWidth={2} />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="start" className="w-48">
+          <DropdownMenuItem onClick={actions.openRenameDialog}>
+            <HugeiconsIcon icon={PencilEdit01Icon} strokeWidth={2} />
+            Rename
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setOpenDialog("duplicate")}>
+            <HugeiconsIcon icon={Copy01Icon} strokeWidth={2} />
+            Duplicate
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={actions.openVisibilityDialog}>
+            <HugeiconsIcon icon={privacyIcon} strokeWidth={2} />
+            Change visibility
+          </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <a
               href={getV0ChatUrl(chat.id)}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center"
             >
-              <ExternalLink className="mr-2 h-4 w-4" />
-              View on v0.app
+              <HugeiconsIcon icon={ArrowUpRight01Icon} strokeWidth={2} />
+              Open in v0.app
             </a>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            onClick={() => setOpenDialog("duplicate")}
-            disabled={isBusy}
-          >
-            <Copy className="mr-2 h-4 w-4" />
-            Duplicate Chat
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={actions.openVisibilityDialog}
-            disabled={isBusy}
-          >
-            <PrivacyIcon className="mr-2 h-4 w-4" />
-            Change Visibility
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={actions.openRenameDialog}
-            disabled={isBusy}
-          >
-            <Edit2 className="mr-2 h-4 w-4" />
-            Rename Chat
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
             onClick={() => setOpenDialog("delete")}
-            disabled={isBusy}
             variant="destructive"
           >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete Chat
+            <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
+            Delete
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -107,11 +95,12 @@ export function ChatActionsMenu({ chat }: ChatActionsMenuProps) {
         onConfirm={actions.rename}
       />
 
-      <ChatDialog
+      <ConfirmDialog
         {...dialogProps("delete")}
-        title="Delete Chat"
-        description="Are you sure you want to delete this chat? This action cannot be undone and will permanently remove the chat and all its messages."
-        confirmLabel="Delete Chat"
+        icon={Delete02Icon}
+        title="Delete this chat?"
+        description="This permanently removes the chat, its messages and its preview. This can't be undone."
+        confirmLabel="Delete chat"
         pendingLabel="Deleting..."
         destructive
         onConfirm={actions.remove}
@@ -119,9 +108,9 @@ export function ChatActionsMenu({ chat }: ChatActionsMenuProps) {
 
       <ChatDialog
         {...dialogProps("duplicate")}
-        title="Duplicate Chat"
-        description="This will create a copy of the current chat. You'll be redirected to the new chat once it's created."
-        confirmLabel="Duplicate Chat"
+        title="Duplicate chat"
+        description="We'll create a copy of this chat and take you to it once it's ready."
+        confirmLabel="Duplicate"
         pendingLabel="Duplicating..."
         onConfirm={actions.duplicate}
       />

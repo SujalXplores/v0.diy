@@ -1,46 +1,51 @@
-import { Eye, EyeOff, Lock, type LucideIcon, Users } from "lucide-react";
+import {
+  LinkSquare02Icon,
+  SquareLock02Icon,
+  UserGroupIcon,
+  ViewIcon,
+} from "@hugeicons/core-free-icons";
+import type { IconSvgElement } from "@hugeicons/react";
 import type { ChatPrivacy } from "../types";
 
 export interface PrivacyOption {
   value: ChatPrivacy;
   label: string;
   description: string;
-  icon: LucideIcon;
+  icon: IconSvgElement;
 }
 
 const PRIVATE_OPTION: PrivacyOption = {
   value: "private",
   label: "Private",
   description: "Only you can see this chat",
-  icon: EyeOff,
+  icon: SquareLock02Icon,
 };
 
-/** Visibility settings in the order they're offered to the user. */
 export const PRIVACY_OPTIONS: readonly PrivacyOption[] = [
   PRIVATE_OPTION,
   {
     value: "public",
     label: "Public",
     description: "Anyone can see this chat",
-    icon: Eye,
+    icon: ViewIcon,
   },
   {
     value: "team",
     label: "Team",
     description: "Team members can see this chat",
-    icon: Users,
+    icon: UserGroupIcon,
   },
   {
     value: "team-edit",
     label: "Team Edit",
     description: "Team members can see and edit this chat",
-    icon: Users,
+    icon: UserGroupIcon,
   },
   {
     value: "unlisted",
     label: "Unlisted",
     description: "Only people with the link can see this chat",
-    icon: Lock,
+    icon: LinkSquare02Icon,
   },
 ];
 

@@ -2,7 +2,6 @@ import { requestJson } from "@/lib/http-client";
 
 const V0_KEY_ENDPOINT = "/api/user/v0-key";
 
-/** SWR cache key for the signed-in user's key status. */
 export const V0_API_KEY_STATUS_CACHE_KEY = "v0-api-key-status";
 
 export interface V0ApiKeyStatus {

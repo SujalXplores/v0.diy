@@ -1,77 +1,51 @@
-import type { ImageAttachment } from "../types";
+import type { ImageAttachment } from "./image-attachments";
 
-const STORAGE_KEY = "v0-prompt-data";
+const STORAGE_PREFIX = "v0diy:draft:";
 
-/** An unsent prompt kept in sessionStorage so it survives reloads. */
 export interface PromptDraft {
   message: string;
   attachments: ImageAttachment[];
 }
 
-interface StoredAttachment {
-  id: string;
-  fileName: string;
-  dataUrl: string;
-}
+const keyFor = (scope: string) => `${STORAGE_PREFIX}${scope}`;
 
-interface StoredDraft {
-  message: string;
-  attachments: StoredAttachment[];
-}
-
-function isStoredDraft(value: unknown): value is StoredDraft {
+function isDraft(value: unknown): value is PromptDraft {
   if (typeof value !== "object" || value === null) {
     return false;
   }
-
-  const draft = value as Partial<StoredDraft>;
+  const draft = value as Partial<PromptDraft>;
   return typeof draft.message === "string" && Array.isArray(draft.attachments);
 }
 
-export function savePromptDraft({ message, attachments }: PromptDraft): void {
-  const draft: StoredDraft = {
-    message,
-    attachments: attachments.map(({ id, name, dataUrl }) => ({
-      id,
-      fileName: name,
-      dataUrl,
-    })),
-  };
-
+export function savePromptDraft(scope: string, draft: PromptDraft): void {
   try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
-  } catch (error) {
-    console.warn("Failed to save prompt to sessionStorage:", error);
+    sessionStorage.setItem(keyFor(scope), JSON.stringify(draft));
+  } catch {
+    try {
+      sessionStorage.setItem(
+        keyFor(scope),
+        JSON.stringify({ message: draft.message, attachments: [] }),
+      );
+    } catch {
+      // Storage unavailable (private mode); drafts just won't persist.
+    }
   }
 }
 
-export function loadPromptDraft(): PromptDraft | null {
+export function loadPromptDraft(scope: string): PromptDraft | null {
   try {
-    const stored = sessionStorage.getItem(STORAGE_KEY);
+    const stored = sessionStorage.getItem(keyFor(scope));
     const parsed: unknown = stored ? JSON.parse(stored) : null;
-
-    if (!isStoredDraft(parsed)) {
-      return null;
-    }
-
-    return {
-      message: parsed.message,
-      attachments: parsed.attachments.map(({ id, fileName, dataUrl }) => ({
-        id,
-        name: fileName,
-        dataUrl,
-      })),
-    };
-  } catch (error) {
-    console.warn("Failed to load prompt from sessionStorage:", error);
+    return isDraft(parsed) ? parsed : null;
+  } catch {
     return null;
   }
 }
 
-export function clearPromptDraft(): void {
+export function clearPromptDraft(scope: string): void {
   try {
-    sessionStorage.removeItem(STORAGE_KEY);
-  } catch (error) {
-    console.warn("Failed to clear prompt from sessionStorage:", error);
+    sessionStorage.removeItem(keyFor(scope));
+  } catch {
+    // Storage unavailable; nothing to clear.
   }
 }

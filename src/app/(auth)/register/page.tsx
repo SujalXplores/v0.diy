@@ -1,17 +1,14 @@
-import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import { AuthCard } from "@/features/auth/components/auth-card";
 import { AuthForm } from "@/features/auth/components/auth-form";
-import { auth } from "@/server/auth/auth";
 
-export default async function RegisterPage() {
-  if (await auth()) {
-    redirect("/");
-  }
+export const metadata: Metadata = { title: "Create an account" };
 
+export default function RegisterPage() {
   return (
     <AuthCard
       title="Create an account"
-      description="Get started with your free account"
+      description="Start building with your own v0 API key"
     >
       <AuthForm type="signup" />
     </AuthCard>

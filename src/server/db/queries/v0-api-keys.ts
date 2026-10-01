@@ -16,7 +16,6 @@ export interface StoredV0ApiKey {
   updatedAt: Date | null;
 }
 
-/** True when a query failed because the BYOK migration hasn't been applied. */
 export function isMissingByokColumnsError(error: unknown): boolean {
   if (!(error instanceof Error)) {
     return false;
@@ -26,10 +25,6 @@ export function isMissingByokColumnsError(error: unknown): boolean {
   return BYOK_COLUMNS.some((column) => message.includes(column));
 }
 
-/**
- * Reads the encrypted v0 API key of a user.
- * Returns null when no key is stored or the BYOK columns don't exist yet.
- */
 export async function getStoredV0ApiKey(
   userId: string,
 ): Promise<StoredV0ApiKey | null> {
@@ -56,7 +51,6 @@ export async function getStoredV0ApiKey(
   }
 }
 
-/** Stores an encrypted v0 API key for a user. */
 export async function saveV0ApiKey(
   userId: string,
   { encrypted, iv }: Pick<StoredV0ApiKey, "encrypted" | "iv">,
@@ -71,7 +65,6 @@ export async function saveV0ApiKey(
     .where(eq(users.id, userId));
 }
 
-/** Removes the stored v0 API key of a user. */
 export async function clearV0ApiKey(userId: string): Promise<void> {
   await getDb()
     .update(users)

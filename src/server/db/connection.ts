@@ -10,7 +10,6 @@ function createDatabase(url: string) {
   return drizzle(postgres(url), { schema });
 }
 
-// Reuse one connection pool across hot reloads in development.
 const globalForDb = globalThis as typeof globalThis & {
   database?: Database;
 };
@@ -28,10 +27,6 @@ function initDatabase(): Database | null {
 
 const database = initDatabase();
 
-/**
- * Returns the shared database client.
- * @throws Error if POSTGRES_URL is not set
- */
 export function getDb(): Database {
   if (!database) {
     throw new Error("Database not initialized. Ensure POSTGRES_URL is set.");

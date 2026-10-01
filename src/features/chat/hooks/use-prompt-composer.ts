@@ -1,48 +1,65 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { createImageAttachment } from "../lib/image-attachments";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import {
+  createImageAttachments,
+  type ImageAttachment,
+} from "../lib/image-attachments";
 import {
   clearPromptDraft,
   loadPromptDraft,
   savePromptDraft,
 } from "../lib/prompt-draft-storage";
-import type { ImageAttachment } from "../types";
 
-/**
- * Draft message and image attachments of a prompt input, persisted to
- * sessionStorage so an unsent prompt survives reloads and sign-in redirects.
- */
-export function usePromptComposer() {
+const SAVE_DELAY_MS = 300;
+
+export function usePromptComposer(scope: string) {
   const [message, setMessage] = useState("");
   const [attachments, setAttachments] = useState<ImageAttachment[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const hasRestoredRef = useRef(false);
 
-  // Restore the draft after hydration; sessionStorage doesn't exist on the
-  // server. Must run before the persist effect below reads the empty state.
   useEffect(() => {
-    const draft = loadPromptDraft();
+    const draft = loadPromptDraft(scope);
     if (draft) {
-      // Reading storage during render would mismatch the server HTML.
       // react-doctor-disable-next-line react-hooks-js/set-state-in-effect
       setMessage(draft.message);
       setAttachments(draft.attachments);
     }
-  }, []);
+    hasRestoredRef.current = true;
+  }, [scope]);
 
   useEffect(() => {
-    if (message.trim() || attachments.length > 0) {
-      savePromptDraft({ message, attachments });
-    } else {
-      clearPromptDraft();
+    if (!hasRestoredRef.current) {
+      return;
     }
-  }, [message, attachments]);
+    const timeout = setTimeout(() => {
+      if (message.trim() || attachments.length > 0) {
+        savePromptDraft(scope, { message, attachments });
+      } else {
+        clearPromptDraft(scope);
+      }
+    }, SAVE_DELAY_MS);
+    return () => clearTimeout(timeout);
+  }, [scope, message, attachments]);
 
   const addImages = async (files: File[]) => {
-    try {
-      const added = await Promise.all(files.map(createImageAttachment));
+    if (files.length === 0) {
+      return;
+    }
+    setIsProcessing(true);
+    const { added, rejected } = await createImageAttachments(
+      files,
+      attachments,
+    );
+    setIsProcessing(false);
+
+    if (added.length > 0) {
       setAttachments((current) => [...current, ...added]);
-    } catch (error) {
-      console.error("Error processing image files:", error);
+    }
+    if (rejected.length > 0) {
+      toast.error([...new Set(rejected)].join(". "));
     }
   };
 
@@ -56,14 +73,12 @@ export function usePromptComposer() {
     );
   };
 
-  /** Empties the input, e.g. right after a message is sent. */
   const clear = () => {
     setMessage("");
     setAttachments([]);
-    clearPromptDraft();
+    clearPromptDraft(scope);
   };
 
-  /** Puts a message back, e.g. when sending was blocked. */
   const restore = (text: string, images: ImageAttachment[]) => {
     setMessage(text);
     setAttachments(images);
@@ -73,6 +88,7 @@ export function usePromptComposer() {
     message,
     setMessage,
     attachments,
+    isProcessing,
     addImages,
     removeAttachment,
     appendTranscript,
@@ -81,4 +97,4 @@ export function usePromptComposer() {
   };
 }
 
-export type PromptComposer = ReturnType<typeof usePromptComposer>;
+export type PromptComposerState = ReturnType<typeof usePromptComposer>;

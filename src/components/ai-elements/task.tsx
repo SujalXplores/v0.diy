@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronDownIcon, SearchIcon } from "lucide-react";
+import { ArrowDown01Icon, TaskDone01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { ComponentProps } from "react";
 import {
   Collapsible,
@@ -18,7 +19,7 @@ export const TaskItemFile = ({
 }: TaskItemFileProps) => (
   <div
     className={cn(
-      "inline-flex items-center gap-1 rounded-md border bg-secondary px-1.5 py-0.5 text-foreground text-xs",
+      "inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 font-mono text-[0.6875rem] text-foreground ring-1 ring-foreground/10",
       className,
     )}
     {...props}
@@ -30,7 +31,10 @@ export const TaskItemFile = ({
 export type TaskItemProps = ComponentProps<"div">;
 
 export const TaskItem = ({ children, className, ...props }: TaskItemProps) => (
-  <div className={cn("text-muted-foreground text-sm", className)} {...props}>
+  <div
+    className={cn("text-muted-foreground text-xs/relaxed", className)}
+    {...props}
+  >
     {children}
   </div>
 );
@@ -64,11 +68,22 @@ export const TaskTrigger = ({
 }: TaskTriggerProps) => (
   <CollapsibleTrigger asChild className={cn("group", className)} {...props}>
     {children ?? (
-      <div className="flex cursor-pointer items-center gap-2 text-muted-foreground hover:text-foreground">
-        <SearchIcon className="size-4" />
-        <p className="text-sm">{title}</p>
-        <ChevronDownIcon className="size-4 transition-transform group-data-[state=open]:rotate-180" />
-      </div>
+      <button
+        type="button"
+        className="flex items-center gap-1.5 rounded-md text-muted-foreground text-xs transition-colors hover:text-foreground"
+      >
+        <HugeiconsIcon
+          icon={TaskDone01Icon}
+          strokeWidth={2}
+          className="size-3.5"
+        />
+        <span>{title}</span>
+        <HugeiconsIcon
+          icon={ArrowDown01Icon}
+          strokeWidth={2}
+          className="size-3.5 transition-transform group-data-[state=open]:rotate-180"
+        />
+      </button>
     )}
   </CollapsibleTrigger>
 );
@@ -87,8 +102,6 @@ export const TaskContent = ({
     )}
     {...props}
   >
-    <div className="mt-4 space-y-2 border-muted border-l-2 pl-4">
-      {children}
-    </div>
+    <div className="mt-3 space-y-2 border-l-2 pl-3">{children}</div>
   </CollapsibleContent>
 );

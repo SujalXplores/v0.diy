@@ -18,14 +18,12 @@ interface UseV0ApiKeyFormOptions {
   onSaved: () => void;
 }
 
-/** State and actions behind the "Set your v0 API key" dialog. */
 export function useV0ApiKeyForm({ isOpen, onSaved }: UseV0ApiKeyFormOptions) {
   const [apiKey, setApiKey] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Only fetch the key status while the dialog is visible.
   const { data: status, mutate } = useSWR(
     isOpen ? V0_API_KEY_STATUS_CACHE_KEY : null,
     fetchV0ApiKeyStatus,
@@ -39,15 +37,18 @@ export function useV0ApiKeyForm({ isOpen, onSaved }: UseV0ApiKeyFormOptions) {
     setPending: (pending: boolean) => void,
     action: () => Promise<void>,
     fallbackError: string,
-  ) => {
+  ): Promise<boolean> => {
     setError(null);
     setPending(true);
+    let succeeded = true;
     try {
       await action();
     } catch (actionError) {
       setError(toErrorMessage(actionError, fallbackError));
+      succeeded = false;
     }
     setPending(false);
+    return succeeded;
   };
 
   const save = () =>
@@ -73,7 +74,6 @@ export function useV0ApiKeyForm({ isOpen, onSaved }: UseV0ApiKeyFormOptions) {
       "Failed to remove API key",
     );
 
-  /** Clears transient state when the dialog is dismissed. */
   const reset = () => setError(null);
 
   return {
@@ -81,6 +81,7 @@ export function useV0ApiKeyForm({ isOpen, onSaved }: UseV0ApiKeyFormOptions) {
     setApiKey,
     error,
     hasExistingKey: Boolean(status?.hasKey),
+    lastUpdatedAt: status?.lastUpdatedAt ?? null,
     isSaving,
     isDeleting,
     canSave: Boolean(apiKey.trim()) && !isSaving && !isDeleting,

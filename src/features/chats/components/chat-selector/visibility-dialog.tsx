@@ -1,18 +1,15 @@
 "use client";
 
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  getPrivacyOption,
-  isChatPrivacy,
-  PRIVACY_OPTIONS,
-  type PrivacyOption,
-} from "../../lib/chat-privacy";
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldLabel,
+  FieldTitle,
+} from "@/components/ui/field";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { isChatPrivacy, PRIVACY_OPTIONS } from "../../lib/chat-privacy";
 import type { ChatPrivacy } from "../../types";
 import { ChatDialog, type ChatDialogStateProps } from "./chat-dialog";
 
@@ -20,32 +17,6 @@ interface VisibilityDialogProps extends ChatDialogStateProps {
   privacy: ChatPrivacy;
   onPrivacyChange: (privacy: ChatPrivacy) => void;
   onConfirm: () => void;
-}
-
-function PrivacyOptionLabel({
-  option,
-  showDescription,
-}: {
-  option: PrivacyOption;
-  showDescription: boolean;
-}) {
-  const Icon = option.icon;
-
-  return (
-    <div className="flex items-center gap-2">
-      <Icon className="h-4 w-4" />
-      {showDescription ? (
-        <div>
-          <div>{option.label}</div>
-          <div className="text-muted-foreground text-xs">
-            {option.description}
-          </div>
-        </div>
-      ) : (
-        <span>{option.label}</span>
-      )}
-    </div>
-  );
 }
 
 export function VisibilityDialog({
@@ -57,36 +28,43 @@ export function VisibilityDialog({
   return (
     <ChatDialog
       {...dialogProps}
-      title="Change Chat Visibility"
+      title="Chat visibility"
       description="Choose who can see and access this chat."
-      confirmLabel="Change Visibility"
-      pendingLabel="Changing..."
+      confirmLabel="Save"
+      pendingLabel="Saving..."
       onConfirm={onConfirm}
     >
-      <Select
+      <RadioGroup
         value={privacy}
         onValueChange={(value) => {
           if (isChatPrivacy(value)) {
             onPrivacyChange(value);
           }
         }}
+        aria-label="Chat visibility"
+        className="gap-2"
+        disabled={dialogProps.isPending}
       >
-        <SelectTrigger aria-label="Chat visibility">
-          <SelectValue>
-            <PrivacyOptionLabel
-              option={getPrivacyOption(privacy)}
-              showDescription={false}
-            />
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          {PRIVACY_OPTIONS.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              <PrivacyOptionLabel option={option} showDescription />
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+        {PRIVACY_OPTIONS.map((option) => {
+          const id = `privacy-${option.value}`;
+          return (
+            <FieldLabel key={option.value} htmlFor={id}>
+              <Field orientation="horizontal">
+                <HugeiconsIcon
+                  icon={option.icon}
+                  strokeWidth={2}
+                  className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                />
+                <FieldContent>
+                  <FieldTitle>{option.label}</FieldTitle>
+                  <FieldDescription>{option.description}</FieldDescription>
+                </FieldContent>
+                <RadioGroupItem value={option.value} id={id} />
+              </Field>
+            </FieldLabel>
+          );
+        })}
+      </RadioGroup>
     </ChatDialog>
   );
 }

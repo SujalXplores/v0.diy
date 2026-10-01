@@ -1,4 +1,5 @@
-import { XIcon } from "lucide-react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
@@ -24,33 +25,35 @@ export function PromptInputImagePreview({
   }
 
   return (
-    <div className={cn("flex flex-wrap gap-2 p-2", className)}>
+    <div className={cn("flex flex-wrap gap-2 px-3 pt-3", className)}>
       {attachments.map((attachment) => (
         <div
           key={attachment.id}
-          className="group relative overflow-hidden rounded-lg border bg-muted"
+          className="group relative size-16 overflow-hidden rounded-lg bg-muted ring-1 ring-foreground/10"
+          title={attachment.name}
         >
           <Image
             src={attachment.dataUrl}
             alt={attachment.name}
             width={64}
             height={64}
-            className="h-16 w-16 object-cover"
+            className="size-16 object-cover"
             unoptimized
           />
           {onRemove && (
             <button
               onClick={() => onRemove(attachment.id)}
-              className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground opacity-0 transition-opacity group-hover:opacity-100"
+              className="absolute top-1 right-1 flex size-5 items-center justify-center rounded-full bg-background/90 text-foreground shadow-sm ring-1 ring-foreground/10 transition-opacity focus-visible:opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
               type="button"
               aria-label={`Remove ${attachment.name}`}
             >
-              <XIcon className="size-3" />
+              <HugeiconsIcon
+                icon={Cancel01Icon}
+                strokeWidth={2}
+                className="size-3"
+              />
             </button>
           )}
-          <div className="absolute right-0 bottom-0 left-0 truncate bg-black/50 p-1 text-white text-xs">
-            {attachment.name}
-          </div>
         </div>
       ))}
     </div>

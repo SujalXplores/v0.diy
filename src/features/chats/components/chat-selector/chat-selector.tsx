@@ -1,11 +1,12 @@
 "use client";
 
-import { MessageSquare } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -18,22 +19,12 @@ import { ChatActionsMenu } from "./chat-actions-menu";
 
 const MAX_LISTED_CHATS = 15;
 
-function ChatLabel({ name }: { name: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      <MessageSquare className="h-4 w-4" />
-      <span className="truncate">{name}</span>
-    </div>
-  );
-}
-
-/** Header dropdown to switch chats, plus actions for the open chat. */
 export function ChatSelector() {
   const router = useRouter();
   const pathname = usePathname();
-  const { chats, isSignedIn } = useUserChats();
+  const { chats } = useUserChats();
 
-  if (!isSignedIn) {
+  if (chats.length === 0) {
     return null;
   }
 
@@ -41,36 +32,35 @@ export function ChatSelector() {
   const currentChat = chats.find((chat) => chat.id === currentChatId);
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex min-w-0 items-center gap-1 max-md:hidden">
+      <span aria-hidden="true" className="select-none text-muted-foreground">
+        /
+      </span>
       <Select
-        value={currentChatId ?? ""}
+        value={currentChat?.id ?? ""}
         onValueChange={(chatId) => router.push(`/chats/${chatId}`)}
       >
-        <SelectTrigger className="w-fit min-w-37.5 max-w-62.5" size="sm">
-          <SelectValue placeholder="Select chat">
-            <ChatLabel
-              name={
-                currentChat ? getChatDisplayName(currentChat) : "Select chat"
-              }
-            />
+        <SelectTrigger className="min-w-0 max-w-64" aria-label="Switch chat">
+          <SelectValue placeholder="Recent chats">
+            {currentChat && (
+              <span className="truncate">
+                {getChatDisplayName(currentChat)}
+              </span>
+            )}
           </SelectValue>
         </SelectTrigger>
-        <SelectContent>
-          {chats.length > 0 ? (
-            chats.slice(0, MAX_LISTED_CHATS).map((chat) => (
+        <SelectContent position="popper" align="start">
+          <SelectGroup>
+            <SelectLabel>Recent chats</SelectLabel>
+            {chats.slice(0, MAX_LISTED_CHATS).map((chat) => (
               <SelectItem key={chat.id} value={chat.id}>
-                <ChatLabel name={getChatDisplayName(chat)} />
+                <span className="truncate">{getChatDisplayName(chat)}</span>
               </SelectItem>
-            ))
-          ) : (
-            <div className="px-2 py-1.5 text-muted-foreground text-sm">
-              No chats yet
-            </div>
-          )}
+            ))}
+          </SelectGroup>
         </SelectContent>
       </Select>
 
-      {/* Keyed so dialog state resets when switching chats. */}
       {currentChat && (
         <ChatActionsMenu key={currentChat.id} chat={currentChat} />
       )}

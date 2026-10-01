@@ -8,9 +8,13 @@ import {
 export default function HomePage() {
   const missingEnvVars = getMissingEnvVars();
 
-  // Only show the setup screen in development when variables are missing.
   if (process.env.NODE_ENV === "development" && missingEnvVars.length > 0) {
-    return <EnvSetup envFileContent={toEnvFileContent(missingEnvVars)} />;
+    return (
+      <EnvSetup
+        envVars={missingEnvVars}
+        envFileContent={toEnvFileContent(missingEnvVars)}
+      />
+    );
   }
 
   return <NewChatView />;

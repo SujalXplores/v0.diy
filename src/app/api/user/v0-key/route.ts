@@ -1,3 +1,4 @@
+import { unstable_rethrow } from "next/navigation";
 import { z } from "zod";
 import { API_ERROR_CODES } from "@/lib/api-error-codes";
 import {
@@ -7,7 +8,11 @@ import {
   saveV0ApiKey,
 } from "@/server/db/queries/v0-api-keys";
 import { HttpError, toErrorResponse } from "@/server/http/errors";
-import { parseJsonBody, requireUserId } from "@/server/http/request";
+import {
+  assertSameOrigin,
+  parseJsonBody,
+  requireUserId,
+} from "@/server/http/request";
 import { encryptV0ApiKey } from "@/server/v0/api-key-crypto";
 import { isValidV0ApiKey } from "@/server/v0/client";
 
@@ -21,6 +26,7 @@ const saveKeyBodySchema = z.object({
 });
 
 function handleError(error: unknown, logContext: string): Response {
+  unstable_rethrow(error);
   if (isMissingByokColumnsError(error)) {
     return new HttpError(
       503,
@@ -32,7 +38,6 @@ function handleError(error: unknown, logContext: string): Response {
   return toErrorResponse(error, logContext, "Failed to manage v0 API key");
 }
 
-/** Reports whether the signed-in user has saved a v0 API key. */
 export async function GET() {
   try {
     const userId = await requireUserId();
@@ -47,9 +52,9 @@ export async function GET() {
   }
 }
 
-/** Validates the key against the v0 API, then stores it encrypted. */
 export async function PUT(request: Request) {
   try {
+    assertSameOrigin(request);
     const userId = await requireUserId();
     const { apiKey } = await parseJsonBody(request, saveKeyBodySchema);
 
@@ -65,8 +70,9 @@ export async function PUT(request: Request) {
   }
 }
 
-export async function DELETE() {
+export async function DELETE(request: Request) {
   try {
+    assertSameOrigin(request);
     const userId = await requireUserId();
     await clearV0ApiKey(userId);
 

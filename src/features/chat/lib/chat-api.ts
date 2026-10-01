@@ -1,105 +1,146 @@
-import type { ChatDetail } from "v0-sdk";
-import { API_ERROR_CODES } from "@/lib/api-error-codes";
-import { readApiError, requestJson } from "@/lib/http-client";
-import type { AttachmentPayload } from "../types";
+import type { Chat, Files, Message, MessageListResponse } from "@v0-sdk/react";
+import { requestJson } from "@/lib/http-client";
 
-const DEFAULT_ERROR_MESSAGE =
-  "Sorry, there was an error processing your message. Please try again.";
-const RATE_LIMIT_ERROR_MESSAGE =
-  "You have exceeded your maximum number of messages for the day. Please try again later.";
+const chatPath = (chatId: string) => `/api/chats/${encodeURIComponent(chatId)}`;
 
-export const getChatCacheKey = (chatId: string) => `/api/chats/${chatId}`;
-export const USER_CHATS_CACHE_KEY = "/api/chats";
+export const chatUrls = {
+  create: "/api/chats",
+  list: "/api/chats",
+  chat: chatPath,
+  messages: (chatId: string) => `${chatPath(chatId)}/messages`,
+  resume: (chatId: string) => `${chatPath(chatId)}/resume`,
+  resolve: (chatId: string) => `${chatPath(chatId)}/resolve`,
+  restore: (chatId: string) => `${chatPath(chatId)}/restore`,
+  stop: (chatId: string, messageId: string) =>
+    `${chatPath(chatId)}/messages/${encodeURIComponent(messageId)}/stop`,
+  files: (chatId: string) => `${chatPath(chatId)}/files`,
+  download: (chatId: string) => `${chatPath(chatId)}/download`,
+  duplicate: (chatId: string) => `${chatPath(chatId)}/duplicate`,
+  deploy: (chatId: string) => `${chatPath(chatId)}/deploy`,
+  project: (chatId: string) => `${chatPath(chatId)}/project`,
+  connectStatus: (chatId: string, requestId: string) =>
+    `${chatPath(chatId)}/connect-status?requestId=${encodeURIComponent(requestId)}`,
+  migrate: (chatId: string) => `${chatPath(chatId)}/migrate`,
+  previewUrl: (chatId: string) => `${chatPath(chatId)}/preview-url`,
+} as const;
 
-export type ChatStreamResult =
-  | { status: "streaming"; stream: ReadableStream<Uint8Array> }
-  | { status: "missing-key" }
-  | { status: "error"; message: string };
+export const USER_CHATS_CACHE_KEY = chatUrls.list;
 
-interface ChatStreamRequest {
-  message: string;
-  /** Continues this chat; a new chat is created when omitted. */
-  chatId?: string | undefined;
-  attachments?: AttachmentPayload[];
-}
-
-/** Sends a message and returns the response stream, or why it failed. */
-export async function requestChatStream({
-  message,
-  chatId,
-  attachments = [],
-}: ChatStreamRequest): Promise<ChatStreamResult> {
-  let response: Response;
-
-  try {
-    response = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message,
-        chatId,
-        streaming: true,
-        ...(attachments.length > 0 && { attachments }),
-      }),
-    });
-  } catch (error) {
-    return {
-      status: "error",
-      message: error instanceof Error ? error.message : DEFAULT_ERROR_MESSAGE,
-    };
-  }
-
-  if (!response.ok) {
-    const { error, code } = await readApiError(response);
-
-    if (code === API_ERROR_CODES.v0ApiKeyRequired) {
-      return { status: "missing-key" };
-    }
-
-    const fallback =
-      response.status === 429
-        ? RATE_LIMIT_ERROR_MESSAGE
-        : DEFAULT_ERROR_MESSAGE;
-    return { status: "error", message: error ?? fallback };
-  }
-
-  if (!response.body) {
-    return { status: "error", message: "No response body for streaming" };
-  }
-
-  return { status: "streaming", stream: response.body };
-}
-
-export function fetchChat(chatId: string): Promise<ChatDetail> {
-  return requestJson<ChatDetail>(getChatCacheKey(chatId));
-}
-
-/** Fetches chat details, returning null (and logging) on failure. */
-export async function fetchChatSafely(
+export function fetchMessagesPage(
   chatId: string,
-): Promise<ChatDetail | null> {
-  try {
-    return await fetchChat(chatId);
-  } catch (error) {
-    console.error("Error fetching chat details:", error);
-    return null;
+  { limit = 50, cursor }: { limit?: number; cursor?: string | null } = {},
+): Promise<MessageListResponse> {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (cursor) {
+    params.set("cursor", cursor);
   }
+  return requestJson<MessageListResponse>(
+    `${chatUrls.messages(chatId)}?${params}`,
+    {},
+    "Failed to load messages",
+  );
 }
 
-/** The URL of the chat's live demo, preferring the latest version. */
-export function getDemoUrl(chat: ChatDetail): string | undefined {
-  return chat.latestVersion?.demoUrl || chat.demo;
+export async function stopMessage(
+  chatId: string,
+  messageId: string,
+): Promise<void> {
+  await requestJson(
+    chatUrls.stop(chatId, messageId),
+    { method: "POST" },
+    "Failed to stop the generation",
+  );
 }
 
-/** Records the current user as owner of a chat created by a stream. */
-export async function recordChatOwnership(chatId: string): Promise<void> {
-  try {
-    await requestJson("/api/chat/ownership", {
-      method: "POST",
-      json: { chatId },
-    });
-  } catch (error) {
-    // The chat still works; it just won't be listed for this user.
-    console.error("Failed to create chat ownership:", error);
-  }
+export function restoreMessage(
+  chatId: string,
+  messageId: string,
+): Promise<{ messages: Message[] }> {
+  return requestJson(
+    chatUrls.restore(chatId),
+    { method: "POST", json: { messageId } },
+    "Failed to restore that version",
+  );
+}
+
+export function fetchFiles(chatId: string): Promise<Files> {
+  return requestJson<Files>(chatUrls.files(chatId), {}, "Failed to load code");
+}
+
+export function updateFiles(
+  chatId: string,
+  files: { path: string; content: string | null }[],
+): Promise<{ messages: Message[] }> {
+  return requestJson(
+    chatUrls.files(chatId),
+    { method: "PATCH", json: { files } },
+    "Failed to save your changes",
+  );
+}
+
+export function deployChat(
+  chatId: string,
+): Promise<{ deploymentId: string; vercelProjectId: string }> {
+  return requestJson(
+    chatUrls.deploy(chatId),
+    { method: "POST" },
+    "Failed to start the deployment",
+  );
+}
+
+export function createVercelProject(
+  chatId: string,
+): Promise<{ vercelProjectId: string }> {
+  return requestJson(
+    chatUrls.project(chatId),
+    { method: "POST" },
+    "Failed to create the Vercel project",
+  );
+}
+
+export function duplicateChat(chatId: string): Promise<Chat> {
+  return requestJson<Chat>(
+    chatUrls.duplicate(chatId),
+    { method: "POST", json: {} },
+    "Failed to duplicate the chat",
+  );
+}
+
+export function migrateChat(chatId: string): Promise<{ chatId: string }> {
+  return requestJson(
+    chatUrls.migrate(chatId),
+    { method: "POST" },
+    "Failed to migrate the chat",
+  );
+}
+
+export type ImportSource =
+  | { kind: "repo"; url: string; branch?: string }
+  | { kind: "zip"; url: string; title?: string }
+  | { kind: "files"; files: { name: string; content: string }[] };
+
+export async function importChat(source: ImportSource): Promise<string> {
+  const { kind, ...body } = source;
+  const { chatId } = await requestJson<{ chatId: string }>(
+    `/api/chats/import/${kind}`,
+    { method: "POST", json: body },
+    "Import failed",
+  );
+  return chatId;
+}
+
+export interface ConnectStatus {
+  status: "pending" | "ready" | "error";
+  message?: string;
+}
+
+export function fetchConnectStatus(
+  chatId: string,
+  requestId: string,
+): Promise<ConnectStatus> {
+  return requestJson<ConnectStatus>(
+    chatUrls.connectStatus(chatId, requestId),
+    {},
+    "Failed to check the connection",
+  );
 }

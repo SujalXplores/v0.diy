@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import { useSWRConfig } from "swr";
 import { USER_CHATS_CACHE_KEY } from "@/features/chat/lib/chat-api";
 import {
@@ -10,11 +11,18 @@ import {
   renameChat,
   updateChatVisibility,
 } from "../lib/chat-actions-api";
+import { getPrivacyOption } from "../lib/chat-privacy";
 import type { ChatPrivacy, ChatSummary, ChatsResponse } from "../types";
 
 export type ChatAction = "rename" | "delete" | "duplicate" | "visibility";
 
-/** Dialog state and API calls behind the current chat's options menu. */
+const FAILURE_MESSAGES: Record<ChatAction, string> = {
+  rename: "Couldn't rename the chat",
+  delete: "Couldn't delete the chat",
+  duplicate: "Couldn't duplicate the chat",
+  visibility: "Couldn't change the chat's visibility",
+};
+
 export function useChatActions(chat: ChatSummary) {
   const router = useRouter();
   const { mutate } = useSWRConfig();
@@ -28,7 +36,7 @@ export function useChatActions(chat: ChatSummary) {
   const updateChatList = (update: (chats: ChatSummary[]) => ChatSummary[]) =>
     mutate<ChatsResponse>(
       USER_CHATS_CACHE_KEY,
-      (current) => current && { ...current, data: update(current.data) },
+      (current) => current && { ...current, chats: update(current.chats) },
       { revalidate: false },
     );
 
@@ -42,14 +50,18 @@ export function useChatActions(chat: ChatSummary) {
     try {
       await task();
       setOpenDialog(null);
+      router.refresh();
     } catch (error) {
       console.error(`Chat action "${action}" failed:`, error);
+      toast.error(FAILURE_MESSAGES[action], {
+        description: error instanceof Error ? error.message : undefined,
+      });
     }
     setPendingAction(null);
   };
 
   const openRenameDialog = () => {
-    setNewName(chat.name ?? "");
+    setNewName(chat.title ?? "");
     setOpenDialog("rename");
   };
 
@@ -66,7 +78,8 @@ export function useChatActions(chat: ChatSummary) {
 
     await run("rename", async () => {
       const updated = await renameChat(chat.id, name);
-      await patchChat({ name: updated.name });
+      await patchChat({ title: updated.title });
+      toast.success("Chat renamed");
     });
   };
 
@@ -77,6 +90,7 @@ export function useChatActions(chat: ChatSummary) {
         chats.filter((item) => item.id !== chat.id),
       );
       router.push("/");
+      toast.success("Chat deleted");
     });
 
   const duplicate = () =>
@@ -84,12 +98,18 @@ export function useChatActions(chat: ChatSummary) {
       const forked = await duplicateChat(chat.id);
       await mutate(USER_CHATS_CACHE_KEY);
       router.push(`/chats/${forked.id}`);
+      toast.success("Chat duplicated", {
+        description: "You're now in the copy.",
+      });
     });
 
   const changeVisibility = () =>
     run("visibility", async () => {
       const updated = await updateChatVisibility(chat.id, selectedPrivacy);
       await patchChat({ privacy: updated.privacy });
+      toast.success(
+        `Visibility set to ${getPrivacyOption(updated.privacy).label}`,
+      );
     });
 
   return {
