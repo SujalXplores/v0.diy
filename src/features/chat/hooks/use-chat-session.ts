@@ -5,6 +5,7 @@ import {
   type Message,
   type MessagesResolveStreamData,
   prependV0UIMessageHistory,
+  shouldResumeV0Chat,
   toV0UIMessages,
   V0Transport,
   type V0UIMessage,
@@ -28,7 +29,7 @@ import {
   mayBeGenerating,
   upsertMessage,
 } from "../lib/v0-messages";
-import type { ModelSettings } from "./use-model-settings";
+import { type ModelSettings, toModelConfiguration } from "./use-model-settings";
 
 export type ResolveTask = MessagesResolveStreamData["body"]["task"];
 
@@ -104,16 +105,18 @@ export function useChatSession({
   const inFlightRef = useRef(false);
   const pendingPromptRef = useRef<SentPrompt | null>(null);
   const externalAbortRef = useRef<AbortController | null>(null);
+  const isMountedRef = useRef(false);
 
   const chat = useChat<V0UIMessage>({
     id: chatId,
     messages: initialUiMessages,
     transport,
     throttle: 50,
-    onFinish: ({ isError }) => {
-      if (!isError) {
-        syncFromServer();
+    onFinish: ({ isAbort, isDisconnect, isError }) => {
+      if (isAbort || (isError && !isDisconnect)) {
+        return;
       }
+      syncFromServer().then(resumeIfGenerating);
     },
     onError: (streamError) => {
       const info = describeChatError(streamError);
@@ -173,6 +176,7 @@ export function useChatSession({
     externalAbortRef.current = controller;
     setExternalStream(kind);
     setError(null);
+    let receivedUpdate = false;
 
     const failure = await request(controller.signal)
       .then((response) =>
@@ -180,6 +184,7 @@ export function useChatSession({
           chatId,
           signal: controller.signal,
           onMessage: (message) => {
+            receivedUpdate = true;
             setExternalMessageId(message.id);
             chat.setMessages((current) => upsertMessage(current, message));
           },
@@ -204,13 +209,23 @@ export function useChatSession({
     externalAbortRef.current = null;
     setExternalStream(null);
     setExternalMessageId(null);
-    await syncFromServer();
+    const fresh = await syncFromServer();
+
+    if (!(failure || controller.signal.aborted) && receivedUpdate) {
+      await resumeIfGenerating(fresh);
+    }
   }
 
   const resume = () =>
     runExternalStream("resume", (signal) =>
       fetch(chatUrls.resume(chatId), { method: "POST", signal }),
     );
+
+  async function resumeIfGenerating(fresh: Message[] | null): Promise<void> {
+    if (isMountedRef.current && fresh && shouldResumeV0Chat(fresh)) {
+      await resume();
+    }
+  }
 
   const didAutoResumeRef = useRef(false);
   // biome-ignore lint/correctness/useExhaustiveDependencies: run once per mounted chat; the page remounts this per chat ID
@@ -225,11 +240,11 @@ export function useChatSession({
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
+    isMountedRef.current = true;
     return () => {
-      isMounted = false;
+      isMountedRef.current = false;
       setTimeout(() => {
-        if (!isMounted) {
+        if (!isMountedRef.current) {
           externalAbortRef.current?.abort();
         }
       }, 0);
@@ -262,10 +277,7 @@ export function useChatSession({
         },
         {
           body: {
-            modelConfiguration: {
-              modelId: modelSettings.modelId,
-              imageGenerations: modelSettings.imageGenerations,
-            },
+            modelConfiguration: toModelConfiguration(modelSettings),
           },
         },
       );
@@ -313,10 +325,7 @@ export function useChatSession({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           task,
-          modelConfiguration: {
-            modelId: modelSettings.modelId,
-            imageGenerations: modelSettings.imageGenerations,
-          },
+          modelConfiguration: toModelConfiguration(modelSettings),
         }),
         signal,
       }),

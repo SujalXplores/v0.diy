@@ -36,8 +36,6 @@ export const V0_MODELS: readonly V0ModelOption[] = [
   },
 ];
 
-export const DEFAULT_MODEL_ID: V0ModelId = "v0-max";
-
 export function isV0ModelId(value: unknown): value is V0ModelId {
   return (V0_MODEL_IDS as readonly unknown[]).includes(value);
 }

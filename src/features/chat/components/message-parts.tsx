@@ -89,6 +89,8 @@ function visibleAssistantText(text: string): string {
   return `${text.slice(0, start)}${text.slice(end + "</CodeProject>".length)}`.trim();
 }
 
+const RAIL_CLASS = "mt-1 ml-1.5 border-l-2 pl-3.5";
+
 interface ActivityProps {
   icon: IconSvgElement;
   title: string;
@@ -144,8 +146,8 @@ function Activity({
           className="size-3.5 shrink-0 text-muted-foreground transition-transform group-data-[state=open]/activity:rotate-180"
         />
       </CollapsibleTrigger>
-      <CollapsibleContent>
-        <pre className="mt-1 max-h-60 overflow-auto whitespace-pre-wrap rounded-md bg-muted/50 p-2 font-mono text-[0.6875rem] text-muted-foreground leading-relaxed">
+      <CollapsibleContent className={RAIL_CLASS}>
+        <pre className="max-h-60 overflow-auto whitespace-pre-wrap rounded-md bg-muted/50 p-2 font-mono text-[0.6875rem] text-muted-foreground leading-relaxed">
           {details}
         </pre>
       </CollapsibleContent>
@@ -168,20 +170,22 @@ function ThinkingPart({
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <CollapsibleTrigger className="group/thinking flex items-center gap-1.5 rounded-md py-0.5 text-muted-foreground text-xs outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/30">
+      <CollapsibleTrigger className="group/thinking flex items-center gap-2 rounded-md py-0.5 text-muted-foreground text-xs outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/30">
         <HugeiconsIcon
           icon={AiBrain01Icon}
           strokeWidth={2}
-          className={cn("size-3.5", isStreaming && "animate-pulse")}
+          className={cn("size-3.5 shrink-0", isStreaming && "animate-pulse")}
         />
         <span>{isStreaming ? "Thinking…" : "Thought process"}</span>
         <HugeiconsIcon
           icon={ArrowDown01Icon}
           strokeWidth={2}
-          className="size-3.5 transition-transform group-data-[state=open]/thinking:rotate-180"
+          className="-ml-1 size-3.5 transition-transform group-data-[state=open]/thinking:rotate-180"
         />
       </CollapsibleTrigger>
-      <CollapsibleContent className="mt-2 border-l-2 pl-3 text-muted-foreground text-xs/relaxed">
+      <CollapsibleContent
+        className={cn(RAIL_CLASS, "text-muted-foreground text-xs/relaxed")}
+      >
         <Response
           mode={isStreaming ? "streaming" : "static"}
           isAnimating={isStreaming}

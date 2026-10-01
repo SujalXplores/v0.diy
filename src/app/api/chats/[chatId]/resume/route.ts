@@ -5,7 +5,7 @@ import { openV0Stream } from "@/server/v0/stream";
 
 type Context = RouteContext<"/api/chats/[chatId]/resume">;
 
-export const maxDuration = 300;
+export const maxDuration = 60;
 
 export const POST = handleRoute(
   "Resume chat error",

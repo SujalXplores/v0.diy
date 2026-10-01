@@ -1,4 +1,3 @@
-import { Card, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const CARDS = [
@@ -19,13 +18,19 @@ export function ProjectsSkeleton() {
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {CARDS.map(({ id, width }) => (
-          <Card key={id} className="pt-0">
-            <Skeleton className="aspect-[3/2] rounded-none" />
-            <CardHeader className="gap-1.5">
-              <Skeleton className={`h-4 ${width}`} />
-              <Skeleton className="h-3 w-1/3" />
-            </CardHeader>
-          </Card>
+          <div
+            key={id}
+            className="overflow-hidden rounded-xl ring-1 ring-foreground/10"
+          >
+            <Skeleton className="aspect-[16/10] rounded-none" />
+            <div className="flex items-center gap-3 p-3">
+              <Skeleton className="size-8 shrink-0 rounded-md" />
+              <div className="flex-1 space-y-1.5">
+                <Skeleton className={`h-3.5 ${width}`} />
+                <Skeleton className="h-3 w-1/2" />
+              </div>
+            </div>
+          </div>
         ))}
       </div>
     </div>

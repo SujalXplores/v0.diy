@@ -1,20 +1,33 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { DEFAULT_MODEL_ID, isV0ModelId, type V0ModelId } from "@/lib/v0-models";
+import { isV0ModelId, type V0ModelId } from "@/lib/v0-models";
 
-const STORAGE_KEY = "v0diy:model-settings";
+const STORAGE_KEY = "v0diy:model-settings:v2";
 const CHANGE_EVENT = "v0diy:model-settings-change";
 
 export interface ModelSettings {
+  modelId: V0ModelId | null;
+  imageGenerations: boolean;
+}
+
+export interface ModelConfiguration {
   modelId: V0ModelId;
   imageGenerations: boolean;
 }
 
 const DEFAULT_SETTINGS: ModelSettings = {
-  modelId: DEFAULT_MODEL_ID,
+  modelId: null,
   imageGenerations: false,
 };
+
+export function toModelConfiguration(
+  settings: ModelSettings,
+): ModelConfiguration | undefined {
+  return settings.modelId
+    ? { modelId: settings.modelId, imageGenerations: settings.imageGenerations }
+    : undefined;
+}
 
 let cachedRaw: string | null | undefined;
 let cachedSettings: ModelSettings = DEFAULT_SETTINGS;
@@ -40,10 +53,9 @@ function getSnapshot(): ModelSettings {
   try {
     const parsed = JSON.parse(raw ?? "null") as Partial<ModelSettings> | null;
     cachedSettings = {
-      modelId: isV0ModelId(parsed?.modelId)
-        ? parsed.modelId
-        : DEFAULT_SETTINGS.modelId,
-      imageGenerations: parsed?.imageGenerations === true,
+      modelId: isV0ModelId(parsed?.modelId) ? parsed.modelId : null,
+      imageGenerations:
+        isV0ModelId(parsed?.modelId) && parsed?.imageGenerations === true,
     };
   } catch {
     cachedSettings = DEFAULT_SETTINGS;
@@ -70,7 +82,11 @@ export function useModelSettings() {
   );
 
   const update = (patch: Partial<ModelSettings>) => {
-    const next = { ...settings, ...patch };
+    const merged = { ...settings, ...patch };
+    const next = {
+      ...merged,
+      imageGenerations: merged.modelId !== null && merged.imageGenerations,
+    };
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     } catch {

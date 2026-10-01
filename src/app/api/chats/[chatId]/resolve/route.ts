@@ -8,7 +8,7 @@ import { openV0Stream } from "@/server/v0/stream";
 type Context = RouteContext<"/api/chats/[chatId]/resolve">;
 type ResolveTask = MessagesResolveStreamData["body"]["task"];
 
-export const maxDuration = 300;
+export const maxDuration = 60;
 
 export const POST = handleRoute(
   "Resolve task error",

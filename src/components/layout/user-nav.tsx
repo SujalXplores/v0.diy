@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { GitHubIcon } from "@/components/ui/icons";
+import { CreditsSummary } from "@/features/credits/components/credits-summary";
 import { useV0ApiKeyModal } from "@/features/v0-api-key/context";
 import { REPOSITORY_URL } from "@/lib/links";
 
@@ -67,6 +68,8 @@ export function UserNav({ session }: UserNavProps) {
             </Avatar>
             <span className="truncate">{email ?? "Signed in"}</span>
           </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <CreditsSummary />
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => openKeyModal()}>
             <HugeiconsIcon icon={Key01Icon} strokeWidth={2} />

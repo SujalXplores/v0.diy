@@ -5,6 +5,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import type { ComponentProps } from "react";
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 export type ConversationProps = ComponentProps<typeof StickToBottom>;
@@ -12,7 +13,7 @@ export type ConversationProps = ComponentProps<typeof StickToBottom>;
 export function Conversation({ className, ...props }: ConversationProps) {
   return (
     <StickToBottom
-      className={cn("relative min-h-0 flex-1 overflow-y-auto", className)}
+      className={cn("relative flex min-h-0 flex-1 flex-col", className)}
       initial="smooth"
       resize="smooth"
       role="log"
@@ -21,19 +22,25 @@ export function Conversation({ className, ...props }: ConversationProps) {
   );
 }
 
-export type ConversationContentProps = ComponentProps<
-  typeof StickToBottom.Content
->;
+export type ConversationContentProps = ComponentProps<"div">;
 
 export function ConversationContent({
   className,
   ...props
 }: ConversationContentProps) {
+  const { scrollRef, contentRef } = useStickToBottomContext();
   return (
-    <StickToBottom.Content
-      className={cn("mx-auto w-full max-w-3xl px-4 py-4", className)}
-      {...props}
-    />
+    <ScrollArea
+      className="min-h-0 flex-1"
+      viewportRef={scrollRef}
+      viewportClassName="[&>div]:block!"
+    >
+      <div
+        ref={contentRef}
+        className={cn("mx-auto w-full max-w-3xl px-4 py-4", className)}
+        {...props}
+      />
+    </ScrollArea>
   );
 }
 
@@ -50,7 +57,7 @@ export function ConversationScrollButton({
   return (
     <Button
       className={cn(
-        "absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full",
+        "absolute bottom-3 left-1/2 z-10 -translate-x-1/2 rounded-full bg-background shadow-md hover:bg-muted dark:bg-background dark:hover:bg-muted",
         className,
       )}
       onClick={() => scrollToBottom()}

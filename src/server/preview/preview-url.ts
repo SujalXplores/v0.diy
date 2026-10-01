@@ -25,10 +25,9 @@ export async function getAppOrigin(): Promise<string> {
   return new URL(`${protocol}://${host}`).origin;
 }
 
-export async function getChatPreviewTarget(
-  chatId: string,
+export async function createChatPreviewTargets(
   userId: string,
-): Promise<ChatPreviewTarget | null> {
+): Promise<((chatId: string) => ChatPreviewTarget) | null> {
   const appOrigin = await getAppOrigin();
   const previewOrigin = getPreviewOrigin(appOrigin);
 
@@ -36,9 +35,19 @@ export async function getChatPreviewTarget(
     return null;
   }
 
-  const token = createPreviewToken({ chatId, userId, appOrigin });
-  return {
-    url: `${previewOrigin}${PREVIEW_PATH_PREFIX}/${token}`,
-    origin: previewOrigin,
+  return (chatId) => {
+    const token = createPreviewToken({ chatId, userId, appOrigin });
+    return {
+      url: `${previewOrigin}${PREVIEW_PATH_PREFIX}/${token}`,
+      origin: previewOrigin,
+    };
   };
+}
+
+export async function getChatPreviewTarget(
+  chatId: string,
+  userId: string,
+): Promise<ChatPreviewTarget | null> {
+  const toTarget = await createChatPreviewTargets(userId);
+  return toTarget?.(chatId) ?? null;
 }

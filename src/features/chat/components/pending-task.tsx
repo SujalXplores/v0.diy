@@ -28,6 +28,7 @@ import {
   FieldTitle,
 } from "@/components/ui/field";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { useLatestRef } from "@/hooks/use-latest-ref";
@@ -327,9 +328,14 @@ function PlanTask({
       title="Review the plan"
       description={data.summary ?? "v0 wants your go-ahead before building."}
     >
-      <div className="max-h-80 overflow-y-auto rounded-md bg-muted/40 p-3 text-xs">
-        <Response>{data.plan}</Response>
-      </div>
+      <ScrollArea
+        className="rounded-md bg-muted/40 text-xs"
+        viewportClassName="max-h-80 [&>div]:block!"
+      >
+        <div className="p-3">
+          <Response>{data.plan}</Response>
+        </div>
+      </ScrollArea>
       <Textarea
         aria-label="Feedback on the plan"
         placeholder="Anything to change? (optional)"

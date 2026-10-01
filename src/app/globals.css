@@ -124,6 +124,8 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
   }
   body {
     @apply bg-background text-foreground;
@@ -131,11 +133,69 @@
   html {
     @apply font-sans;
   }
+
+  :where(
+    button,
+    select,
+    summary,
+    label[for],
+    input[type="checkbox"],
+    input[type="radio"],
+    input[type="file"],
+    [role="button"],
+    [role="tab"],
+    [role="radio"],
+    [role="checkbox"],
+    [role="switch"],
+    [role="option"],
+    [role="combobox"],
+    [role="menuitem"],
+    [role="menuitemcheckbox"],
+    [role="menuitemradio"],
+    [data-slot="field-label"]
+  ):not(:disabled, [aria-disabled="true"], [data-disabled]) {
+    cursor: pointer;
+  }
+
+  :where(
+    button,
+    select,
+    input,
+    textarea,
+    [role="button"],
+    [role="tab"],
+    [role="option"],
+    [role="menuitem"],
+    [role="menuitemcheckbox"],
+    [role="menuitemradio"]
+  ):is(:disabled, [aria-disabled="true"]) {
+    cursor: not-allowed;
+  }
 }
 
-button:not(:disabled),
-[role="button"]:not([aria-disabled="true"]) {
-  cursor: pointer;
+.code-viewer [data-streamdown="code-block"] {
+  margin: 0;
+  gap: 0;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  min-height: 100%;
+}
+
+.code-viewer [data-streamdown="code-block-header"],
+.code-viewer [data-streamdown="code-block-actions"] {
+  display: none;
+}
+
+.code-viewer [data-streamdown="code-block-body"] {
+  border: 0;
+  border-radius: 0;
+  padding: 0.75rem 1rem;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  min-height: 100%;
+  overflow: visible;
 }
 
 @utility bg-dot-grid {

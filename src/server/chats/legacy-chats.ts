@@ -5,14 +5,13 @@ import {
   getChatIdsByUserId,
   replaceLegacyChatOwnership,
 } from "@/server/db/queries/chat-ownerships";
-import { LEGACY_V0_API_URL } from "@/server/env";
 import { HttpError } from "@/server/http/errors";
 import {
   getUserV0ApiKey,
   getV0ClientForUser,
-  toV0HttpError,
   unwrapV0,
 } from "@/server/v0/client";
+import { requestV1 } from "@/server/v0/legacy-api";
 
 export interface LegacyChat {
   id: string;
@@ -30,17 +29,40 @@ interface V1Chat {
 }
 
 const MAX_LEGACY_ZIP_BYTES = 25 * 1024 * 1024;
+const LEGACY_FETCH_CONCURRENCY = 6;
 
-async function requestV1(apiKey: string, path: string): Promise<Response> {
-  const response = await fetch(`${LEGACY_V0_API_URL}${path}`, {
-    headers: { Authorization: `Bearer ${apiKey}` },
-    cache: "no-store",
-  });
+async function mapWithConcurrency<Item, Result>(
+  items: readonly Item[],
+  limit: number,
+  run: (item: Item) => Promise<Result>,
+): Promise<Result[]> {
+  const results: Result[] = new Array(items.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < items.length) {
+      const index = next++;
+      results[index] = await run(items[index] as Item);
+    }
+  };
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, worker),
+  );
+  return results;
+}
 
-  if (!response.ok) {
-    throw toV0HttpError(response.status, undefined);
+async function getLegacyChat(
+  apiKey: string,
+  chatId: string,
+): Promise<V1Chat | null> {
+  try {
+    const response = await requestV1(apiKey, `/chats/${chatId}`);
+    return (await response.json()) as V1Chat;
+  } catch (error) {
+    if (!(error instanceof HttpError && error.status === 404)) {
+      console.warn(`Couldn't load legacy chat ${chatId}:`, error);
+    }
+    return null;
   }
-  return response;
 }
 
 async function requireApiKey(userId: string): Promise<string> {
@@ -66,21 +88,20 @@ export async function listLegacyChats(userId: string): Promise<LegacyChat[]> {
     return [];
   }
 
-  try {
-    const response = await requestV1(apiKey, "/chats?limit=100");
-    const { data } = (await response.json()) as { data: V1Chat[] };
+  const chats = await mapWithConcurrency(
+    [...legacyIds],
+    LEGACY_FETCH_CONCURRENCY,
+    (chatId) => getLegacyChat(apiKey, chatId),
+  );
 
-    return data
-      .filter((chat) => legacyIds.has(chat.id))
-      .map((chat) => ({
-        id: chat.id,
-        name: chat.name || chat.title || "Untitled chat",
-        updatedAt: chat.updatedAt ?? chat.createdAt,
-      }));
-  } catch (error) {
-    console.error("Failed to list legacy v1 chats:", error);
-    return [];
-  }
+  return chats
+    .filter((chat): chat is V1Chat => chat !== null)
+    .map((chat) => ({
+      id: chat.id,
+      name: chat.name || chat.title || "Untitled chat",
+      updatedAt: chat.updatedAt ?? chat.createdAt,
+    }))
+    .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
 }
 
 export async function migrateLegacyChat(

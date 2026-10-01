@@ -10,7 +10,7 @@ import { parseJsonBody } from "@/server/http/request";
 import { handleRoute } from "@/server/http/route";
 import { getStreamChatId, openV0Stream } from "@/server/v0/stream";
 
-export const maxDuration = 300;
+export const maxDuration = 60;
 
 export async function GET() {
   const session = await auth();

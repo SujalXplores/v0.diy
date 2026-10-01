@@ -11,7 +11,7 @@ import { chatUrls, USER_CHATS_CACHE_KEY } from "../lib/chat-api";
 import { describeChatError } from "../lib/chat-errors";
 import { toFileParts } from "../lib/image-attachments";
 import type { SentPrompt } from "./use-chat-session";
-import type { ModelSettings } from "./use-model-settings";
+import { type ModelSettings, toModelConfiguration } from "./use-model-settings";
 
 const LOGIN_URL = "/login?callbackUrl=/";
 const NEW_CHAT_ID = "new-chat";
@@ -100,10 +100,7 @@ export function useNewChat({ onPromptRejected }: UseNewChatOptions) {
         },
         {
           body: {
-            modelConfiguration: {
-              modelId: modelSettings.modelId,
-              imageGenerations: modelSettings.imageGenerations,
-            },
+            modelConfiguration: toModelConfiguration(modelSettings),
           },
         },
       );

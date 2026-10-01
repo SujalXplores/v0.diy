@@ -16,6 +16,8 @@ import {
 import { isV0ModelId, V0_MODELS } from "@/lib/v0-models";
 import type { ModelSettings } from "../hooks/use-model-settings";
 
+const ACCOUNT_DEFAULT = "default";
+
 interface ModelPickerProps {
   settings: ModelSettings;
   onChange: (patch: Partial<ModelSettings>) => void;
@@ -28,6 +30,7 @@ export function ModelPicker({
   disabled,
 }: ModelPickerProps) {
   const current = V0_MODELS.find((model) => model.id === settings.modelId);
+  const label = current?.label ?? "Default model";
 
   return (
     <DropdownMenu>
@@ -36,7 +39,7 @@ export function ModelPicker({
           variant="ghost"
           size="sm"
           disabled={disabled}
-          aria-label={`Model: ${current?.label ?? settings.modelId}`}
+          aria-label={`Model: ${label}`}
           className="text-muted-foreground"
         >
           {settings.imageGenerations && (
@@ -46,7 +49,7 @@ export function ModelPicker({
               data-icon="inline-start"
             />
           )}
-          {current?.label ?? settings.modelId}
+          {label}
           <HugeiconsIcon
             icon={ArrowDown01Icon}
             strokeWidth={2}
@@ -57,13 +60,19 @@ export function ModelPicker({
       <DropdownMenuContent align="start" className="w-64">
         <DropdownMenuLabel>Model</DropdownMenuLabel>
         <DropdownMenuRadioGroup
-          value={settings.modelId}
-          onValueChange={(value) => {
-            if (isV0ModelId(value)) {
-              onChange({ modelId: value });
-            }
-          }}
+          value={settings.modelId ?? ACCOUNT_DEFAULT}
+          onValueChange={(value) =>
+            onChange({ modelId: isV0ModelId(value) ? value : null })
+          }
         >
+          <DropdownMenuRadioItem value={ACCOUNT_DEFAULT}>
+            <span className="grid">
+              <span className="font-medium">Default model</span>
+              <span className="text-muted-foreground">
+                Whatever your v0 plan uses by default
+              </span>
+            </span>
+          </DropdownMenuRadioItem>
           {V0_MODELS.map((model) => (
             <DropdownMenuRadioItem key={model.id} value={model.id}>
               <span className="grid">
@@ -75,15 +84,22 @@ export function ModelPicker({
             </DropdownMenuRadioItem>
           ))}
         </DropdownMenuRadioGroup>
+        <p className="px-2 pt-1 pb-1.5 text-[0.6875rem] text-muted-foreground">
+          Some models need a paid v0 plan. v0 rejects the prompt if yours
+          doesn't include the one you pick.
+        </p>
         <DropdownMenuSeparator />
         <DropdownMenuCheckboxItem
           checked={settings.imageGenerations}
+          disabled={settings.modelId === null}
           onCheckedChange={(checked) => onChange({ imageGenerations: checked })}
         >
           <span className="grid">
             <span className="font-medium">Generate images</span>
             <span className="text-muted-foreground">
-              Let v0 create up to 5 images per version
+              {settings.modelId === null
+                ? "Pick a model to turn this on"
+                : "Let v0 create up to 5 images per version"}
             </span>
           </span>
         </DropdownMenuCheckboxItem>

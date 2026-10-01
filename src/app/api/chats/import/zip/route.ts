@@ -5,7 +5,7 @@ import { parseJsonBody } from "@/server/http/request";
 import { handleRoute } from "@/server/http/route";
 import { unwrapV0 } from "@/server/v0/client";
 
-export const maxDuration = 120;
+export const maxDuration = 60;
 
 export const POST = handleRoute(
   "Import ZIP error",

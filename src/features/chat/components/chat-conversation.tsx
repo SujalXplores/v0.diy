@@ -122,8 +122,11 @@ function MessageFooter({
 
 function StreamingIndicator({ label }: { label: string }) {
   return (
-    <div className="flex items-center gap-2 py-2 text-muted-foreground text-xs">
-      <Spinner className="size-3.5" />
+    <div
+      role="status"
+      className="flex items-center gap-2 py-1 text-muted-foreground text-xs"
+    >
+      <Spinner className="size-3.5 shrink-0" />
       <span className="animate-pulse">{label}</span>
     </div>
   );
@@ -138,9 +141,12 @@ export function ChatConversation({
 }: ChatConversationProps) {
   const { messages } = session;
   const lastMessage = messages.at(-1);
-  const isWaitingForAssistant =
-    session.isBusy &&
-    (lastMessage?.role === "user" || lastMessage === undefined);
+  const busyLabel =
+    session.externalStream === "resume"
+      ? "Reconnecting to v0…"
+      : session.externalStream === "resolve"
+        ? "Sending your answer…"
+        : "v0 is working…";
 
   return (
     <Conversation aria-busy={session.isBusy}>
@@ -172,6 +178,7 @@ export function ChatConversation({
                   {message.role === "user" ? "You said:" : "v0 replied:"}
                 </span>
                 <MessageParts message={message} isStreaming={isStreaming} />
+                {isStreaming && <StreamingIndicator label="Working…" />}
                 {message.role === "assistant" && isLast && !session.isBusy && (
                   <PendingTask
                     chatId={chatId}
@@ -190,14 +197,8 @@ export function ChatConversation({
           );
         })}
 
-        {isWaitingForAssistant && (
-          <StreamingIndicator
-            label={
-              session.externalStream === "resume"
-                ? "Reconnecting to v0…"
-                : "v0 is working…"
-            }
-          />
+        {session.isBusy && !session.activeAssistantId && (
+          <StreamingIndicator label={busyLabel} />
         )}
 
         {session.error && (
