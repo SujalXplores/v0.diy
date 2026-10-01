@@ -1,0 +1,53 @@
+import "server-only";
+
+import {
+  API_ERROR_CODES,
+  type ApiErrorBody,
+  type ApiErrorCode,
+} from "@/lib/api-error-codes";
+
+export class HttpError extends Error {
+  readonly status: number;
+  readonly code: ApiErrorCode | undefined;
+
+  constructor(status: number, message: string, code?: ApiErrorCode) {
+    super(message);
+    this.name = "HttpError";
+    this.status = status;
+    this.code = code;
+  }
+
+  toResponse(): Response {
+    const body: ApiErrorBody = { error: this.message, message: this.message };
+    if (this.code) {
+      body.code = this.code;
+    }
+    return Response.json(body, { status: this.status });
+  }
+}
+
+export const unauthorizedError = () =>
+  new HttpError(401, "Authentication required", API_ERROR_CODES.unauthorized);
+
+export const badRequestError = (message: string) => new HttpError(400, message);
+
+export function toErrorResponse(
+  error: unknown,
+  logContext: string,
+  fallbackMessage: string,
+): Response {
+  if (error instanceof HttpError) {
+    return error.toResponse();
+  }
+
+  console.error(`${logContext}:`, error);
+
+  const body: ApiErrorBody = {
+    error: fallbackMessage,
+    message: fallbackMessage,
+  };
+  if (process.env.NODE_ENV === "development") {
+    body.details = error instanceof Error ? error.message : "Unknown error";
+  }
+  return Response.json(body, { status: 500 });
+}

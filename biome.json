@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.4.4/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.14/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -15,7 +15,10 @@
       "!**/public",
       "!**/.next",
       "!**/content",
-      "!**/.git"
+      "!**/.git",
+      "!**/.kilo",
+      "!**/.kiro",
+      "!**/.agents"
     ]
   },
   "formatter": {
@@ -29,7 +32,7 @@
     "enabled": true,
     "actions": {
       "source": {
-        "recommended": true,
+        "preset": "recommended",
         "organizeImports": "on"
       }
     }
@@ -37,35 +40,35 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "a11y": {
-        "recommended": true,
+        "preset": "recommended",
         "useSemanticElements": "warn"
       },
       "complexity": {
-        "recommended": true,
+        "preset": "recommended",
         "noExcessiveCognitiveComplexity": "warn",
         "noVoid": "error",
         "useLiteralKeys": "error",
         "useSimplifiedLogicExpression": "warn"
       },
       "correctness": {
-        "recommended": true,
+        "preset": "recommended",
         "noUnusedImports": "error",
         "noUnusedVariables": "error",
         "useHookAtTopLevel": "error"
       },
       "nursery": {
-        "recommended": true,
+        "preset": "recommended",
         "useSortedClasses": "error"
       },
       "performance": {
-        "recommended": true,
+        "preset": "recommended",
         "noAccumulatingSpread": "warn",
         "noDelete": "error"
       },
       "suspicious": {
-        "recommended": true,
+        "preset": "recommended",
         "noExplicitAny": "warn",
         "noArrayIndexKey": "warn",
         "noDebugger": "error",
@@ -73,12 +76,12 @@
         "noEmptyBlockStatements": "warn"
       },
       "security": {
-        "recommended": true,
+        "preset": "recommended",
         "noDangerouslySetInnerHtml": "warn",
         "noGlobalEval": "error"
       },
       "style": {
-        "recommended": true,
+        "preset": "recommended",
         "noParameterAssign": "off",
         "useAsConstAssertion": "error",
         "useDefaultParameterLast": "error",

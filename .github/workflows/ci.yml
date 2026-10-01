@@ -34,3 +34,6 @@ jobs:
 
       - name: Type check
         run: pnpm typecheck
+
+      - name: React Doctor
+        run: pnpm lint:react

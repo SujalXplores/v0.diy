@@ -1,226 +1,186 @@
+<div align="center">
+
 ```
 ██╗   ██╗ ██████╗       ██████╗ ██╗██╗   ██╗
 ██║   ██║██╔═████╗      ██╔══██╗██║╚██╗ ██╔╝
-██║   ██║██║██╔██║█████╗██║  ██║██║ ╚████╔╝ 
-╚██╗ ██╔╝████╔╝██║╚════╝██║  ██║██║  ╚██╔╝  
- ╚████╔╝ ╚██████╔╝      ██████╔╝██║   ██║   
-  ╚═══╝   ╚═════╝       ╚═════╝ ╚═╝   ╚═╝   
+██║   ██║██║██╔██║█████╗██║  ██║██║ ╚████╔╝
+╚██╗ ██╔╝████╔╝██║╚════╝██║  ██║██║  ╚██╔╝
+ ╚████╔╝ ╚██████╔╝      ██████╔╝██║   ██║
+  ╚═══╝   ╚═════╝       ╚═════╝ ╚═╝   ╚═╝
 ```
 
-**Open-source clone of v0.app with AI-powered React component generation**
+### The open-source, self-hosted v0.app clone
 
-[![GitHub Stars](https://img.shields.io/github/stars/SujalXplores/v0.diy?style=flat-square&logo=github&labelColor=1a1a2e&color=4a4e69)](https://github.com/SujalXplores/v0.diy/stargazers)
-[![GitHub Forks](https://img.shields.io/github/forks/SujalXplores/v0.diy?style=flat-square&logo=github&labelColor=1a1a2e&color=4a4e69)](https://github.com/SujalXplores/v0.diy/network/members)
-[![GitHub Issues](https://img.shields.io/github/issues/SujalXplores/v0.diy?style=flat-square&logo=github&labelColor=1a1a2e&color=4a4e69)](https://github.com/SujalXplores/v0.diy/issues)
-[![License](https://img.shields.io/github/license/SujalXplores/v0.diy?style=flat-square&labelColor=1a1a2e&color=4a4e69)](LICENSE)
+Describe an app in plain English. Watch v0 think, write files, run commands and ship a live preview. On your own domain, with your own key.
 
-[![Next.js](https://img.shields.io/badge/Next.js-16.1-black?style=flat-square&logo=next.js&logoColor=white)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-19.2-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.1-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![GitHub Stars](https://img.shields.io/github/stars/SujalXplores/v0.diy?style=flat-square&logo=github&labelColor=0a0a0a&color=262626)](https://github.com/SujalXplores/v0.diy/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/SujalXplores/v0.diy?style=flat-square&logo=github&labelColor=0a0a0a&color=262626)](https://github.com/SujalXplores/v0.diy/network/members)
+[![CI](https://img.shields.io/github/actions/workflow/status/SujalXplores/v0.diy/ci.yml?branch=main&style=flat-square&label=CI&labelColor=0a0a0a)](https://github.com/SujalXplores/v0.diy/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/github/license/SujalXplores/v0.diy?style=flat-square&labelColor=0a0a0a&color=262626)](LICENSE)
 
-[Getting Started](#getting-started) · [Features](#features) · [Tech Stack](#tech-stack) · [Project Structure](#project-structure) · [Contributing](#contributing)
+[![Next.js 16](https://img.shields.io/badge/Next.js-16.3-black?style=flat-square&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![React 19](https://img.shields.io/badge/React-19.3-149eca?style=flat-square&logo=react&logoColor=white)](https://react.dev/)
+[![TypeScript 7](https://img.shields.io/badge/TypeScript-7-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Tailwind CSS 4](https://img.shields.io/badge/Tailwind-4.3-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![v0 Platform API v2](https://img.shields.io/badge/v0_Platform_API-v2-000?style=flat-square)](https://v0.app/docs/api/v2)
+
+[Quick start](#quick-start) · [Features](#features) · [Deploy](#deploy-to-vercel) · [How it works](#how-it-works) · [Contributing](#contributing)
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FSujalXplores%2Fv0.diy&env=POSTGRES_URL,AUTH_SECRET,PREVIEW_ORIGIN&envDescription=Postgres%20connection%20string%2C%20a%20random%20auth%20secret%20and%20a%20separate%20domain%20for%20app%20previews&envLink=https%3A%2F%2Fgithub.com%2FSujalXplores%2Fv0.diy%23environment-variables&project-name=v0-diy&repository-name=v0-diy)
+
+</div>
 
 ---
 
-## Overview
+## Why v0.diy?
 
-v0.diy is a self-hosted, open-source alternative to [v0.app](https://v0.app) that transforms natural language descriptions into production-ready React components. Built with the latest web technologies and designed for developers who want full control over their AI-assisted development workflow.
+[v0.app](https://v0.app) is a great AI app builder, but it's a hosted product. **v0.diy** gives you the same agentic workflow, built on the official [v0 Platform API](https://v0.app/docs/api/v2), inside an app you own:
+
+- **Bring your own key.** Each user adds their own v0 API key. Keys are encrypted at rest with AES-256-GCM and never reach the browser.
+- **Self-hosted.** Run it on Vercel, your own server or your laptop. Your users, your database, your domain.
+- **Hackable.** A clean Next.js 16 codebase with a feature-first layout, strict TypeScript and CI-enforced lint checks. Fork it and make it yours.
 
 ## Features
 
-| Feature | Description |
-|---------|-------------|
-| **AI Component Generation** | Convert natural language prompts into functional React components |
-| **Real-time Streaming** | Watch code generation happen live with streaming responses |
-| **User Authentication** | Secure email/password authentication with NextAuth.js |
-| **Rate Limiting** | 50 messages per day for authenticated users |
-| **Persistent Chat History** | Conversations and generated components saved to PostgreSQL |
-| **Projects Dashboard** | View and manage all your generated projects |
-| **Live Preview** | Split-screen resizable layout with instant component preview |
-| **Dark/Light Theme** | Full theme support with system preference detection |
-| **Image Attachments** | Attach images to your prompts for context |
-| **Voice Input** | Microphone support for voice-based prompts |
+### 🤖 Agentic generation, streamed live
+- Watch v0 **think**, **read and edit files**, **search** and **run commands** in real time
+- Answer v0's **questions**, approve its **plans**, grant **permissions** and connect **integrations** without leaving the chat
+- Generations survive reloads and serverless timeouts, and reconnect automatically
+- Pick a model (Mini, Pro, Max, Max Fast) or use your plan's default, and turn on **image generation** when you want it
 
-## Getting Started
+### 🖥️ Workspace
+- **Live preview** served from an isolated origin, with desktop, tablet and phone sizes and a fullscreen mode
+- **Code explorer** with a folder tree, file-type icons, syntax highlighting and line numbers
+- **Edit files in place** and save them back to v0
+- **Restore** any earlier version, **download a ZIP** or **deploy to Vercel** in one click
 
-### Prerequisites
+### 📁 Projects and chats
+- Projects grid with **live preview thumbnails**
+- Search, rename, duplicate, delete and change chat visibility
+- **Import** existing code from a GitHub repo, a ZIP or a local folder
+- One-click **migration** for chats created on the old v1 API
 
-- Node.js 22.x or later
-- pnpm 9.0 or later
-- PostgreSQL database (local or hosted)
-- v0 API key from [v0.app](https://v0.app/chat/settings/keys) for each end user (BYOK)
+### ✨ Everything else
+- Account menu shows your **v0 plan and remaining credits**
+- Image attachments, voice input and drafts that survive a reload
+- Email and password auth, a per-user daily limit on new chats, and dark mode
 
-### Installation
+## Quick start
+
+**Prerequisites:** Node.js 22+, pnpm 10+, a PostgreSQL database and a [v0 API key](https://v0.app/chat/settings/keys).
 
 ```bash
-# Clone the repository
 git clone https://github.com/SujalXplores/v0.diy.git
 cd v0.diy
-
-# Install dependencies
 pnpm install
-
-# Copy environment template
-cp .env.example .env.local
-```
-
-### Environment Configuration
-
-Create a `.env.local` file with the following variables:
-
-```bash
-# Environment
-NODE_ENV=development
-
-# Database (required)
-POSTGRES_URL=postgresql://user:password@localhost:5432/v0_diy
-
-# Authentication (required - generate with: openssl rand -base64 32)
-AUTH_SECRET=your_auth_secret_here
-
-# Optional: Custom v0 API URL
-V0_API_URL=
-```
-
-After sign in, each user adds their own v0 API key from the account menu.
-
-> **Note:** In development mode, if `AUTH_SECRET` is not set, a default development secret will be used automatically.
-
-### Database Setup
-
-```bash
-# Apply database migrations
+cp .env.example .env.local   # then fill in POSTGRES_URL and AUTH_SECRET
 pnpm db:migrate
-
-# Start development server
 pnpm dev
 ```
 
-The application will be available at `http://localhost:3000`.
+Open [http://localhost:3000](http://localhost:3000), create an account and add your v0 API key from the account menu.
 
-### Available Scripts
+> In development, previews are served from `127.0.0.1` while the app runs on `localhost`, so they get their own origin with no extra setup.
 
-| Command | Description |
-|---------|-------------|
-| `pnpm dev` | Start development server with Turbopack |
+### Environment variables
+
+| Variable | Required | Description |
+|---|---|---|
+| `POSTGRES_URL` | ✅ | PostgreSQL connection string (Neon, Supabase, Vercel Postgres or local) |
+| `AUTH_SECRET` | ✅ | Signs sessions and preview tokens, and encrypts stored API keys. Generate one with `openssl rand -base64 32` |
+| `PREVIEW_ORIGIN` | Production | A **different site** that points at the same deployment, e.g. `https://preview-myapp.com`. Generated apps run there so they can't touch your app's cookies |
+| `APP_ORIGIN` | Optional | Public URL of the app when it runs behind a proxy |
+| `V0_API_URL` | Optional | Overrides the v0 API base URL |
+
+## Deploy to Vercel
+
+1. Click **Deploy with Vercel** above and fill in the environment variables.
+2. Add a second domain for previews to the same project, on a different site from the app's domain (not a subdomain of it), and set it as `PREVIEW_ORIGIN`.
+3. Redeploy. `pnpm build` runs the database migrations for you.
+
+Streaming routes use `maxDuration = 60`, so they run on every Vercel plan, including Hobby. Long generations reconnect transparently when a function times out. On Pro you can raise `maxDuration` in the `src/app/api/chats/**/route.ts` files to cut down on reconnects.
+
+## How it works
+
+```mermaid
+flowchart LR
+  B[Browser] -- prompt --> A[Next.js route handlers]
+  A -- user's encrypted key --> V[v0 Platform API v2]
+  V -- SSE stream --> A -- SSE stream --> B
+  B -- iframe --> P[Preview origin]
+  P -- signed token --> A
+  A --- DB[(PostgreSQL)]
+```
+
+- **Route handlers** check the session and chat ownership, decrypt the user's key and proxy v0's server-sent events to the browser.
+- **The chat UI** renders the stream with the AI SDK and `@v0-sdk/react`. Every agent step becomes a typed message part.
+- **Previews** load through a signed, short-lived token on a separate origin, so generated code never runs next to your session.
+- **PostgreSQL** (via Drizzle ORM) stores users, encrypted keys and which chats belong to whom. Chat content stays on v0.
+
+## Tech stack
+
+| | |
+|---|---|
+| **Framework** | Next.js 16 (App Router, Turbopack, Cache Components), React 19 with the React Compiler |
+| **AI** | v0 Platform API v2 via `v0` and `@v0-sdk/react`, Vercel AI SDK 7, Streamdown for markdown and code |
+| **UI** | Tailwind CSS 4, shadcn/ui on Radix, Hugeicons, Geist |
+| **Data and auth** | PostgreSQL, Drizzle ORM, Auth.js 5 |
+| **Quality** | TypeScript 7 (strict), Biome, React Doctor, Husky with lint-staged, GitHub Actions CI |
+
+## Project structure
+
+```
+src/
+├── app/            # Routes, layouts and API route handlers (kept thin)
+├── components/     # Shared UI: shadcn/ui primitives, AI elements, layout
+├── features/       # One folder per feature: auth, chat, chats, projects, credits, v0-api-key
+├── hooks/          # Generic React hooks
+├── lib/            # Isomorphic helpers
+└── server/         # Server-only code: auth, db, http helpers, v0 client, previews
+```
+
+## Scripts
+
+| Command | What it does |
+|---|---|
+| `pnpm dev` | Start the dev server with Turbopack |
 | `pnpm build` | Run migrations and build for production |
-| `pnpm start` | Start production server |
-| `pnpm db:generate` | Generate migration files from schema changes |
-| `pnpm db:migrate` | Apply pending migrations to the database |
-| `pnpm db:studio` | Open Drizzle Studio for database inspection |
-| `pnpm db:push` | Push schema changes directly to the database |
-| `pnpm lint` | Run Biome linter |
-| `pnpm lint:fix` | Run Biome linter with auto-fix |
-| `pnpm format` | Format code with Biome |
-| `pnpm check` | Run Biome check (lint + format) |
-| `pnpm typecheck` | Run TypeScript type checking |
-
-## Tech Stack
-
-### Frontend
-- **React 19.2.3** — Latest React with concurrent rendering and React Compiler
-- **Next.js 16.1.1** — Full-stack React framework with App Router & Turbopack
-- **TypeScript 5.9.3** — Static type checking
-- **Tailwind CSS 4.1.18** — Utility-first CSS framework
-- **Radix UI** — Accessible UI primitives
-- **Geist Font** — Typography by Vercel
-
-### Backend & Data
-- **NextAuth.js 5 (Beta)** — Authentication with Credentials provider
-- **PostgreSQL** — Relational database
-- **Drizzle ORM 0.45.1** — Type-safe database operations
-- **Vercel Postgres** — Cloud-hosted PostgreSQL support
-
-### AI Integration
-- **v0 SDK 0.15.3** — Official v0.app API client
-- **AI SDK 6.0.11** — Streaming AI response handling
-- **@v0-sdk/react 0.4.1** — React components for AI interactions
-
-### Developer Experience
-- **Biome 2.3.11** — Fast linter and formatter
-- **Husky** — Git hooks for code quality
-- **lint-staged** — Run linters on staged files
-
-## Project Structure
-
-```
-v0.diy/
-├── app/                      # Next.js App Router
-│   ├── (auth)/              # Authentication routes & config
-│   │   ├── login/           # Login page
-│   │   └── register/        # Registration page
-│   ├── api/                 # API routes
-│   │   ├── auth/            # NextAuth endpoints
-│   │   ├── chat/            # Chat API (create, fork, delete)
-│   │   └── chats/           # Chat list & detail endpoints
-│   ├── chats/               # Chat pages
-│   └── projects/            # Projects dashboard
-├── components/
-│   ├── ai-elements/         # AI-specific components (prompt, response, etc.)
-│   ├── chat/                # Chat interface components
-│   ├── chats/               # Chat list components
-│   ├── home/                # Home page components
-│   ├── projects/            # Projects page components
-│   ├── providers/           # React context providers
-│   ├── shared/              # Shared layout components
-│   └── ui/                  # Reusable UI primitives
-├── contexts/                # React contexts
-├── hooks/                   # Custom React hooks
-├── lib/
-│   ├── db/                  # Database schema, queries & migrations
-│   └── ...                  # Utilities and configurations
-├── types/                   # TypeScript type definitions
-└── public/                  # Static assets
-```
-
-## Authentication & Rate Limits
-
-Login is required to use the chat functionality. Users must create an account or sign in before submitting prompts.
-
-| User Type | Max Messages/Day | Description |
-|-----------|------------------|-------------|
-| Registered | 50 | Email/password authenticated users |
-
-> **Note:** Unauthenticated users will be redirected to the login page when attempting to submit a prompt. Any typed message will be preserved and restored after login.
+| `pnpm db:generate` / `db:migrate` / `db:studio` | Create, apply and inspect Drizzle migrations |
+| `pnpm check:fix` | Lint and format with Biome |
+| `pnpm validate` | Biome, TypeScript and React Doctor, the same checks as CI |
 
 ## Contributing
 
-Contributions are welcome. Please read our contributing guidelines before submitting a pull request.
+Issues and pull requests are welcome. For anything big, open an issue first so we can agree on the approach.
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/improvement`)
-3. Commit your changes (`git commit -am 'Add new feature'`)
-4. Push to the branch (`git push origin feature/improvement`)
-5. Open a Pull Request
+1. Fork the repo and create a branch: `git checkout -b feat/my-idea`
+2. Make your change and run `pnpm validate`
+3. Open a pull request describing what changed and why
 
-### Code Quality
-
-This project uses Biome for linting and formatting. Before submitting a PR:
-
-```bash
-pnpm check:fix  # Auto-fix linting and formatting issues
-pnpm typecheck  # Ensure no TypeScript errors
-```
+Please follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Testing
 
-This project is tested with BrowserStack
+This project is tested with BrowserStack.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+[MIT](LICENSE). Build something great with it.
 
 ---
 
-## Contributors
+<div align="center">
+
+### Contributors
 
 <a href="https://github.com/SujalXplores/v0.diy/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=SujalXplores/v0.diy" />
+  <img src="https://contrib.rocks/image?repo=SujalXplores/v0.diy" alt="Contributors" />
 </a>
 
-## Star History
+### Star history
 
 [![Star History Chart](https://api.star-history.com/svg?repos=SujalXplores/v0.diy&type=Date)](https://star-history.com/#SujalXplores/v0.diy&Date)
 
-> **⭐ If you found this project helpful, please consider giving it a star!**
+**If v0.diy saves you time, a ⭐ helps other people find it.**
+
+</div>
