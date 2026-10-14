@@ -78,8 +78,8 @@ importers:
         specifier: 1.1.6
         version: 1.1.6(react@19.3.0)
       v0:
-        specifier: 3.0.7
-        version: 3.0.7
+        specifier: 3.0.10
+        version: 3.0.10
       zod:
         specifier: 4.6.5
         version: 4.6.5
@@ -4923,9 +4923,6 @@ packages:
 
   v0@3.0.10:
     resolution: {integrity: sha512-ADj+5M++CidPwNnNTWxgafF+ZaSjkGnCFj1pSVrcI9lunQ5o4IS0nLSQpIKhV4MwlVCxEjaC5lOwgWdSgRth0g==}
-
-  v0@3.0.7:
-    resolution: {integrity: sha512-PkHIBXC1uM+GNw7z5sB4VuuBzyhPeaEStkLtNbo/KPnnxiKW9ZYAm1X9j4q/7WIQFmU4GW5W9k9CCr/Iu2z5ug==}
 
   validate-npm-package-name@7.0.2:
     resolution: {integrity: sha512-hVDIBwsRruT73PbK7uP5ebUt+ezEtCmzZz3F59BSr2F6OVFnJ/6h8liuvdLrQ88Xmnk6/+xGGuq+pG9WwTuy3A==}
@@ -9795,11 +9792,6 @@ snapshots:
     dependencies:
       '@vercel/oidc': 3.8.9
       bidc: 0.0.3
-      jsondiffpatch: 0.7.6
-
-  v0@3.0.7:
-    dependencies:
-      '@vercel/oidc': 3.8.9
       jsondiffpatch: 0.7.6
 
   validate-npm-package-name@7.0.2: {}

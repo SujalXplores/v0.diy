@@ -60,7 +60,7 @@
     "streamdown": "2.6.0",
     "swr": "2.5.1",
     "use-stick-to-bottom": "1.1.6",
-    "v0": "3.0.7",
+    "v0": "3.0.10",
     "zod": "4.6.5"
   },
   "devDependencies": {
