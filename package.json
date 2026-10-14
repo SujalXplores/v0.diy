@@ -48,7 +48,7 @@
     "cn": "0.4.0",
     "drizzle-orm": "0.45.4",
     "geist": "1.7.2",
-    "next": "16.3.6",
+    "next": "16.4.0",
     "next-auth": "5.0.0-beta.30",
     "next-themes": "0.4.6",
     "postgres": "3.4.9",
