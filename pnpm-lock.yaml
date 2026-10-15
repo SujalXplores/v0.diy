@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@ai-sdk/react':
         specifier: 4.0.140
-        version: 4.0.140(react@19.3.0)(zod@4.6.5)
+        version: 4.0.140(react@19.3.0)(zod@4.6.6)
       '@hugeicons/core-free-icons':
         specifier: 4.3.5
         version: 4.3.5
@@ -22,10 +22,10 @@ importers:
         version: 1.1.1(react@19.3.0)
       '@v0-sdk/react':
         specifier: 3.0.10
-        version: 3.0.10(ai@7.0.137(zod@4.6.5))(react@19.3.0)(swr@2.5.1(react@19.3.0))
+        version: 3.0.10(ai@7.0.137(zod@4.6.6))(react@19.3.0)(swr@2.5.1(react@19.3.0))
       ai:
         specifier: 7.0.137
-        version: 7.0.137(zod@4.6.5)
+        version: 7.0.137(zod@4.6.6)
       bcrypt-ts:
         specifier: 9.0.2
         version: 9.0.2
@@ -81,8 +81,8 @@ importers:
         specifier: 3.0.10
         version: 3.0.10
       zod:
-        specifier: 4.6.5
-        version: 4.6.5
+        specifier: 4.6.6
+        version: 4.6.6
     devDependencies:
       '@biomejs/biome':
         specifier: 2.5.15
@@ -5028,48 +5028,48 @@ packages:
   zod@4.1.11:
     resolution: {integrity: sha512-WPsqwxITS2tzx1bzhIKsEs19ABD5vmCVa4xBo2tq/SrV4RNZtfws1EnCWQXM6yh8bD08a1idvkB5MZSBiZsjwg==}
 
-  zod@4.6.5:
-    resolution: {integrity: sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q==}
+  zod@4.6.6:
+    resolution: {integrity: sha512-4UmzQUF5fxvfcYHlbjBmejU+w+hbDnWFx4aS8kBx7nPBHcO2SqPbpAG8snbdg+Xse4pRefR98hgjFgIMCI/UhA==}
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
 
 snapshots:
 
-  '@ai-sdk/gateway@4.0.110(zod@4.6.5)':
+  '@ai-sdk/gateway@4.0.110(zod@4.6.6)':
     dependencies:
       '@ai-sdk/provider': 4.0.26
-      '@ai-sdk/provider-utils': 5.0.58(zod@4.6.5)
+      '@ai-sdk/provider-utils': 5.0.58(zod@4.6.6)
       '@vercel/oidc': 3.2.0
-      zod: 4.6.5
+      zod: 4.6.6
 
-  '@ai-sdk/mcp@2.0.73(zod@4.6.5)':
+  '@ai-sdk/mcp@2.0.73(zod@4.6.6)':
     dependencies:
       '@ai-sdk/provider': 4.0.26
-      '@ai-sdk/provider-utils': 5.0.58(zod@4.6.5)
+      '@ai-sdk/provider-utils': 5.0.58(zod@4.6.6)
       cross-spawn: 7.0.6
       pkce-challenge: 5.0.1
-      zod: 4.6.5
+      zod: 4.6.6
 
-  '@ai-sdk/provider-utils@5.0.58(zod@4.6.5)':
+  '@ai-sdk/provider-utils@5.0.58(zod@4.6.6)':
     dependencies:
       '@ai-sdk/provider': 4.0.26
       '@standard-schema/spec': 1.1.0
       '@workflow/serde': 4.1.0
       eventsource-parser: 3.1.1
       undici: 7.30.0
-      zod: 4.6.5
+      zod: 4.6.6
 
   '@ai-sdk/provider@4.0.26':
     dependencies:
       json-schema: 0.4.0
 
-  '@ai-sdk/react@4.0.140(react@19.3.0)(zod@4.6.5)':
+  '@ai-sdk/react@4.0.140(react@19.3.0)(zod@4.6.6)':
     dependencies:
-      '@ai-sdk/mcp': 2.0.73(zod@4.6.5)
+      '@ai-sdk/mcp': 2.0.73(zod@4.6.6)
       '@ai-sdk/provider': 4.0.26
-      '@ai-sdk/provider-utils': 5.0.58(zod@4.6.5)
-      ai: 7.0.137(zod@4.6.5)
+      '@ai-sdk/provider-utils': 5.0.58(zod@4.6.6)
+      ai: 7.0.137(zod@4.6.6)
       react: 19.3.0
       swr: 2.5.1(react@19.3.0)
       throttleit: 2.1.0
@@ -7171,9 +7171,9 @@ snapshots:
 
   '@ungap/structured-clone@1.4.0': {}
 
-  '@v0-sdk/react@3.0.10(ai@7.0.137(zod@4.6.5))(react@19.3.0)(swr@2.5.1(react@19.3.0))':
+  '@v0-sdk/react@3.0.10(ai@7.0.137(zod@4.6.6))(react@19.3.0)(swr@2.5.1(react@19.3.0))':
     dependencies:
-      ai: 7.0.137(zod@4.6.5)
+      ai: 7.0.137(zod@4.6.6)
       react: 19.3.0
       v0: 3.0.10
     optionalDependencies:
@@ -7227,12 +7227,12 @@ snapshots:
       prompts: 2.4.2
       yaml: 2.9.1
 
-  ai@7.0.137(zod@4.6.5):
+  ai@7.0.137(zod@4.6.6):
     dependencies:
-      '@ai-sdk/gateway': 4.0.110(zod@4.6.5)
+      '@ai-sdk/gateway': 4.0.110(zod@4.6.6)
       '@ai-sdk/provider': 4.0.26
-      '@ai-sdk/provider-utils': 5.0.58(zod@4.6.5)
-      zod: 4.6.5
+      '@ai-sdk/provider-utils': 5.0.58(zod@4.6.6)
+      zod: 4.6.6
 
   ajv-formats@2.1.1(ajv@8.20.0):
     optionalDependencies:
@@ -7662,8 +7662,8 @@ snapshots:
       '@babel/parser': 7.29.9
       eslint: 10.11.0(jiti@2.7.0)
       hermes-parser: 0.25.1
-      zod: 4.6.5
-      zod-validation-error: 4.0.2(zod@4.6.5)
+      zod: 4.6.6
+      zod-validation-error: 4.0.2(zod@4.6.6)
     transitivePeerDependencies:
       - supports-color
 
@@ -9870,14 +9870,14 @@ snapshots:
     dependencies:
       zod: 3.25.76
 
-  zod-validation-error@4.0.2(zod@4.6.5):
+  zod-validation-error@4.0.2(zod@4.6.6):
     dependencies:
-      zod: 4.6.5
+      zod: 4.6.6
 
   zod@3.25.76: {}
 
   zod@4.1.11: {}
 
-  zod@4.6.5: {}
+  zod@4.6.6: {}
 
   zwitch@2.0.4: {}
