@@ -78,8 +78,8 @@ importers:
         specifier: 1.1.6
         version: 1.1.6(react@19.3.0)
       v0:
-        specifier: 3.0.10
-        version: 3.0.10
+        specifier: 3.0.12
+        version: 3.0.12
       zod:
         specifier: 4.6.7
         version: 4.6.7
@@ -4921,9 +4921,6 @@ packages:
 
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
-
-  v0@3.0.10:
-    resolution: {integrity: sha512-ADj+5M++CidPwNnNTWxgafF+ZaSjkGnCFj1pSVrcI9lunQ5o4IS0nLSQpIKhV4MwlVCxEjaC5lOwgWdSgRth0g==}
 
   v0@3.0.12:
     resolution: {integrity: sha512-itYeRdOfduMew2iNP13VcvxHznQ7YwrAP+05OdzvXZ99QRsAnzdyq8xr0u+eD8Te4zA+kZ6kfjOrnD/mbs7RiQ==}
@@ -9796,12 +9793,6 @@ snapshots:
       react: 19.3.0
 
   util-deprecate@1.0.2: {}
-
-  v0@3.0.10:
-    dependencies:
-      '@vercel/oidc': 3.8.9
-      bidc: 0.0.3
-      jsondiffpatch: 0.7.6
 
   v0@3.0.12:
     dependencies:
