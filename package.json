@@ -41,7 +41,7 @@
     "@hugeicons/core-free-icons": "4.3.5",
     "@hugeicons/react": "1.1.10",
     "@streamdown/code": "1.1.1",
-    "@v0-sdk/react": "3.0.10",
+    "@v0-sdk/react": "3.0.12",
     "ai": "7.0.148",
     "bcrypt-ts": "9.0.2",
     "class-variance-authority": "0.7.1",
