@@ -27,8 +27,8 @@ importers:
         specifier: 7.0.159
         version: 7.0.159(zod@4.6.7)
       bcrypt-ts:
-        specifier: 9.0.2
-        version: 9.0.2
+        specifier: 9.0.3
+        version: 9.0.3
       class-variance-authority:
         specifier: 0.7.1
         version: 0.7.1
@@ -2769,8 +2769,8 @@ packages:
     engines: {node: '>=6.0.0'}
     hasBin: true
 
-  bcrypt-ts@9.0.2:
-    resolution: {integrity: sha512-esaMayGbxzD3bOpy7f00pa5wA15wqhP15RbDYGzh/xGbZRNr05G9HdNiqK4ywzrVdzO8rv+Z4l6m01/9pv1FRA==}
+  bcrypt-ts@9.0.3:
+    resolution: {integrity: sha512-7N21c3DP+jqYUlxhrx5b4GMzZaLw5kmokizcXny2PIDRxETkll7HNDo36mI2xClsxYdpX+eP77pEDPXYDNNQLw==}
     engines: {node: '>=22'}
 
   bidc@0.0.3:
@@ -6983,7 +6983,7 @@ snapshots:
 
   baseline-browser-mapping@2.11.26: {}
 
-  bcrypt-ts@9.0.2: {}
+  bcrypt-ts@9.0.3: {}
 
   bidc@0.0.3: {}
 
