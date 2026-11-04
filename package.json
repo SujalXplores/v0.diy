@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "@ai-sdk/react": "4.0.163",
-    "@hugeicons/core-free-icons": "4.3.5",
+    "@hugeicons/core-free-icons": "4.4.0",
     "@hugeicons/react": "1.1.10",
     "@streamdown/code": "1.1.1",
     "@v0-sdk/react": "3.0.12",
