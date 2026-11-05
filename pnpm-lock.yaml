@@ -33,8 +33,8 @@ importers:
         specifier: 0.7.1
         version: 0.7.1
       cn:
-        specifier: 0.4.0
-        version: 0.4.0
+        specifier: 0.5.1
+        version: 0.5.1
       drizzle-orm:
         specifier: 0.45.4
         version: 0.45.4(@opentelemetry/api@1.9.1)(@types/pg@8.11.6)(@vercel/postgres@0.10.0)(postgres@3.4.9)
@@ -2856,9 +2856,9 @@ packages:
     engines: {node: '>=20'}
     hasBin: true
 
-  cn@0.4.0:
-    resolution: {integrity: sha512-qOAeUhPwPzBxx6jaeQdo646XIKliKHc2j1ZF7Ngb1o0pJZKH5gq8FkA0aVdUdPFUDXNXyUCXpCtoJISo6dhizg==}
-    engines: {node: '>=20'}
+  cn@0.5.1:
+    resolution: {integrity: sha512-SA06SpzSWXRNrt/EQWnRpck9jEVDfVJonw8ZewiNR6pOC4U0SQ81tWaQ9/PKNPh/lWvjuY4CMlxpc8tJViiX6Q==}
+    engines: {node: '>=22'}
     hasBin: true
 
   code-block-writer@13.0.3:
@@ -7058,7 +7058,7 @@ snapshots:
 
   cn@0.2.6: {}
 
-  cn@0.4.0: {}
+  cn@0.5.1: {}
 
   code-block-writer@13.0.3: {}
 
