@@ -21,8 +21,8 @@ importers:
         specifier: 1.1.1
         version: 1.1.1(react@19.3.1)
       '@v0-sdk/react':
-        specifier: 3.0.12
-        version: 3.0.12(ai@7.0.159(zod@4.6.7))(react@19.3.1)(swr@2.5.1(react@19.3.1))
+        specifier: 3.0.13
+        version: 3.0.13(ai@7.0.159(zod@4.6.7))(react@19.3.1)(swr@2.5.1(react@19.3.1))
       ai:
         specifier: 7.0.159
         version: 7.0.159(zod@4.6.7)
@@ -2662,8 +2662,8 @@ packages:
   '@ungap/structured-clone@1.4.0':
     resolution: {integrity: sha512-1mEZtMKPM09vDmQt5y7YvmN2+DFTP7Tg0EWXdic8/C6VRnpb33e4ghisCIE3WZjsE2N8mf+QV1Zqh7ZFYLWInQ==}
 
-  '@v0-sdk/react@3.0.12':
-    resolution: {integrity: sha512-dztRtZiFCixxYs7jDFrw5ePFcZGm9bCNLFQhyPtgaceWHcQeoNZmgd3a5/yVyEmwb8BVHwQmKWApnfqnbN0eeQ==}
+  '@v0-sdk/react@3.0.13':
+    resolution: {integrity: sha512-eY/prT2RoSssUx3/NlUkeoJAOV83CGi0F+33j8ddu1UWGIFf7NF9+2JhOdBb9Hqv0f33391bmWqeHamzWF72Kg==}
     engines: {node: '>=18'}
     peerDependencies:
       ai: ^7.0.0
@@ -4598,6 +4598,9 @@ packages:
 
   v0@3.0.12:
     resolution: {integrity: sha512-itYeRdOfduMew2iNP13VcvxHznQ7YwrAP+05OdzvXZ99QRsAnzdyq8xr0u+eD8Te4zA+kZ6kfjOrnD/mbs7RiQ==}
+
+  v0@3.0.13:
+    resolution: {integrity: sha512-BVv2uWgwPIO7NnyOz/cv/bM/VvNcC9J7OuK6Xrsevwng+8QjKYqu5qrvemXRxXhsxDwLeX67nV3CYB5mjMrNng==}
 
   validate-npm-package-name@7.0.2:
     resolution: {integrity: sha512-hVDIBwsRruT73PbK7uP5ebUt+ezEtCmzZz3F59BSr2F6OVFnJ/6h8liuvdLrQ88Xmnk6/+xGGuq+pG9WwTuy3A==}
@@ -6831,11 +6834,11 @@ snapshots:
 
   '@ungap/structured-clone@1.4.0': {}
 
-  '@v0-sdk/react@3.0.12(ai@7.0.159(zod@4.6.7))(react@19.3.1)(swr@2.5.1(react@19.3.1))':
+  '@v0-sdk/react@3.0.13(ai@7.0.159(zod@4.6.7))(react@19.3.1)(swr@2.5.1(react@19.3.1))':
     dependencies:
       ai: 7.0.159(zod@4.6.7)
       react: 19.3.1
-      v0: 3.0.12
+      v0: 3.0.13
     optionalDependencies:
       swr: 2.5.1(react@19.3.1)
 
@@ -9101,6 +9104,12 @@ snapshots:
   util-deprecate@1.0.2: {}
 
   v0@3.0.12:
+    dependencies:
+      '@vercel/oidc': 3.8.9
+      bidc: 0.0.3
+      jsondiffpatch: 0.7.6
+
+  v0@3.0.13:
     dependencies:
       '@vercel/oidc': 3.8.9
       bidc: 0.0.3
