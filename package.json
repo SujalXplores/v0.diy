@@ -45,7 +45,7 @@
     "ai": "7.0.166",
     "bcrypt-ts": "9.0.3",
     "class-variance-authority": "0.7.1",
-    "cn": "0.5.1",
+    "cn": "0.5.2",
     "drizzle-orm": "0.45.4",
     "geist": "1.9.0",
     "next": "16.4.3",
