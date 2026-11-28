@@ -21,8 +21,8 @@ importers:
         specifier: 1.1.1
         version: 1.1.1(react@19.3.1)
       '@v0-sdk/react':
-        specifier: 3.0.13
-        version: 3.0.13(ai@7.0.179(zod@4.6.7))(react@19.3.1)(swr@2.5.1(react@19.3.1))
+        specifier: 4.0.2
+        version: 4.0.2(ai@7.0.179(zod@4.6.7))(react@19.3.1)(swr@2.5.1(react@19.3.1))
       ai:
         specifier: 7.0.179
         version: 7.0.179(zod@4.6.7)
@@ -2650,8 +2650,8 @@ packages:
   '@ungap/structured-clone@1.4.0':
     resolution: {integrity: sha512-1mEZtMKPM09vDmQt5y7YvmN2+DFTP7Tg0EWXdic8/C6VRnpb33e4ghisCIE3WZjsE2N8mf+QV1Zqh7ZFYLWInQ==}
 
-  '@v0-sdk/react@3.0.13':
-    resolution: {integrity: sha512-eY/prT2RoSssUx3/NlUkeoJAOV83CGi0F+33j8ddu1UWGIFf7NF9+2JhOdBb9Hqv0f33391bmWqeHamzWF72Kg==}
+  '@v0-sdk/react@4.0.2':
+    resolution: {integrity: sha512-9fq0QwfJ81ZKVrzOb7S9Hj73Nb6Nt0zLTjj8qV+LT91guOmBb2ykJRVQougf2PnLlG/bXMHE7J5tz4dgvizvHA==}
     engines: {node: '>=18'}
     peerDependencies:
       ai: ^7.0.0
@@ -4577,6 +4577,9 @@ packages:
 
   v0@3.0.13:
     resolution: {integrity: sha512-BVv2uWgwPIO7NnyOz/cv/bM/VvNcC9J7OuK6Xrsevwng+8QjKYqu5qrvemXRxXhsxDwLeX67nV3CYB5mjMrNng==}
+
+  v0@4.0.2:
+    resolution: {integrity: sha512-WDDZR2JdPy1rvjuFJmcwYsiRMvKRf11XEHEsshUeVp7NQmhWMn2j/AcUMd0xenPm/Kq0lnPobAPYkAqhV50Bbw==}
 
   validate-npm-package-name@7.0.2:
     resolution: {integrity: sha512-hVDIBwsRruT73PbK7uP5ebUt+ezEtCmzZz3F59BSr2F6OVFnJ/6h8liuvdLrQ88Xmnk6/+xGGuq+pG9WwTuy3A==}
@@ -6793,11 +6796,11 @@ snapshots:
 
   '@ungap/structured-clone@1.4.0': {}
 
-  '@v0-sdk/react@3.0.13(ai@7.0.179(zod@4.6.7))(react@19.3.1)(swr@2.5.1(react@19.3.1))':
+  '@v0-sdk/react@4.0.2(ai@7.0.179(zod@4.6.7))(react@19.3.1)(swr@2.5.1(react@19.3.1))':
     dependencies:
       ai: 7.0.179(zod@4.6.7)
       react: 19.3.1
-      v0: 3.0.13
+      v0: 4.0.2
     optionalDependencies:
       swr: 2.5.1(react@19.3.1)
 
@@ -9052,6 +9055,12 @@ snapshots:
   util-deprecate@1.0.2: {}
 
   v0@3.0.13:
+    dependencies:
+      '@vercel/oidc': 3.8.9
+      bidc: 0.0.3
+      jsondiffpatch: 0.7.6
+
+  v0@4.0.2:
     dependencies:
       '@vercel/oidc': 3.8.9
       bidc: 0.0.3
